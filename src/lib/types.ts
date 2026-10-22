@@ -73,7 +73,7 @@ export interface Packaging {
   sample?: boolean
 }
 
-export type RecipeCategory = 'fit' | 'lowcarb' | 'tradicional' | 'vegana' | 'kids'
+export type RecipeCategory = 'fit' | 'lowcarb' | 'tradicional' | 'vegetariana' | 'vegana' | 'caldos' | 'kids'
 export type RecipeSize = 'P' | 'M' | 'G'
 
 export interface RecipeItem {

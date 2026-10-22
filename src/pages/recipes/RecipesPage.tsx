@@ -1,4 +1,4 @@
-import { ClipboardList, Copy, Pencil, Plus, Trash2 } from 'lucide-react'
+import { BookOpen, ClipboardList, Copy, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -15,6 +15,7 @@ import { recipeCategoryColors, recipeCategoryLabels } from '@/lib/labels'
 import type { Recipe, RecipeCategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
+import { DishCatalogDialog } from './DishCatalogDialog'
 import { RecipeThumb } from './RecipeThumb'
 
 export function RecipesPage() {
@@ -28,6 +29,7 @@ export function RecipesPage() {
   const showExtras = params.get('tipo') === 'adicionais'
   const [category, setCategory] = useState<RecipeCategory | 'todas'>('todas')
   const [deleting, setDeleting] = useState<Recipe | undefined>()
+  const [catalogOpen, setCatalogOpen] = useState(false)
 
   const ofKind = useMemo(() => recipes.filter((r) => isExtra(r) === showExtras), [recipes, showExtras])
   const extrasCount = recipes.filter(isExtra).length
@@ -47,11 +49,16 @@ export function RecipesPage() {
         title="Fichas técnicas"
         description="A receita de cada marmita e de cada adicional, com a quantidade de cada ingrediente e o custo da porção."
         actions={
-          <Button asChild>
-            <Link to={newLink}>
-              <Plus /> {showExtras ? 'Novo adicional' : 'Nova ficha'}
-            </Link>
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setCatalogOpen(true)}>
+              <BookOpen /> Catálogo de pratos
+            </Button>
+            <Button asChild>
+              <Link to={newLink}>
+                <Plus /> {showExtras ? 'Novo adicional' : 'Nova ficha'}
+              </Link>
+            </Button>
+          </>
         }
       />
 
@@ -184,6 +191,8 @@ export function RecipesPage() {
           ))}
         </div>
       )}
+
+      <DishCatalogDialog open={catalogOpen} onOpenChange={setCatalogOpen} />
 
       <ConfirmDialog
         open={!!deleting}

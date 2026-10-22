@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { planDishImport, type DishSelection } from '@/lib/calc/dish-import'
 import { applyStockChanges } from '@/lib/calc/stock'
 import { applyPriceUpdate } from '@/lib/calc/units'
 import { duplicateRecipe as duplicateRecipeCalc } from '@/lib/calc/recipe'
@@ -55,6 +56,8 @@ interface Actions {
   updateRecipe: (id: string, patch: Partial<Recipe>) => void
   deleteRecipe: (id: string) => void
   duplicateRecipe: (id: string) => string | undefined
+  /** Cria fichas técnicas a partir do catálogo de pratos */
+  importDishes: (selections: DishSelection[]) => { created: number; skipped: string[] }
 
   setCosts: (patch: Partial<CostSettings>) => void
   setFees: (patch: Partial<FeeSettings>) => void
@@ -219,6 +222,18 @@ export const useAppStore = create<AppState>()(
           ingredients: applyStockChanges(s.ingredients, changes, 'ingrediente'),
           packaging: applyStockChanges(s.packaging, changes, 'embalagem'),
         })),
+
+      importDishes: (selections) => {
+        const s = get()
+        const now = todayISO()
+        const plan = planDishImport(selections, s, newId, now)
+        set({
+          ingredients: [...s.ingredients, ...plan.newIngredients],
+          packaging: [...s.packaging, ...plan.newPackaging],
+          recipes: [...s.recipes, ...plan.recipes.map((r) => ({ ...r, id: newId(), createdAt: now }))],
+        })
+        return { created: plan.recipes.length, skipped: plan.skipped }
+      },
 
       setTheme: (theme) => set((s) => ({ settings: { ...s.settings, theme } })),
 

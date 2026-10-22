@@ -54,7 +54,9 @@ export const recipeCategoryLabels: Record<RecipeCategory, string> = {
   fit: 'Fit',
   lowcarb: 'Low carb',
   tradicional: 'Tradicional',
+  vegetariana: 'Vegetariana',
   vegana: 'Vegana',
+  caldos: 'Caldos e cremes',
   kids: 'Kids',
 }
 
@@ -62,7 +64,9 @@ export const recipeCategoryColors: Record<RecipeCategory, string> = {
   fit: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300',
   lowcarb: 'bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300',
   tradicional: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',
+  vegetariana: 'bg-teal-100 text-teal-800 dark:bg-teal-500/15 dark:text-teal-300',
   vegana: 'bg-lime-100 text-lime-800 dark:bg-lime-500/15 dark:text-lime-300',
+  caldos: 'bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300',
   kids: 'bg-pink-100 text-pink-800 dark:bg-pink-500/15 dark:text-pink-300',
 }
 

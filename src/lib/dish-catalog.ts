@@ -1,0 +1,547 @@
+import type { Ingredient, RecipeCategory, RecipeKind } from './types'
+
+/**
+ * Catálogo de pratos: receitas-base para criar fichas técnicas em um toque.
+ * As quantidades são uma estimativa inicial (porção de 350 g, peso pronto) e
+ * os preços dos ingredientes são referência de atacado (out/2026) — ajuste no app.
+ */
+
+export type CatalogIngredient = Pick<
+  Ingredient,
+  'name' | 'category' | 'packagePrice' | 'packageQty' | 'unit' | 'lossPercent' | 'cookingYield' | 'unitWeight'
+>
+
+const ing = (
+  name: string,
+  category: Ingredient['category'],
+  packagePrice: number,
+  packageQty: number,
+  unit: Ingredient['unit'],
+  lossPercent = 0,
+  cookingYield?: number,
+): CatalogIngredient => ({ name, category, packagePrice, packageQty, unit, lossPercent, cookingYield })
+
+/** Ingredientes usados pelos pratos. Os nomes batem com os dos dados de exemplo para reaproveitar. */
+export const catalogIngredients = {
+  frango: ing('Peito de frango', 'proteina', 21.9, 1, 'kg', 25),
+  sobrecoxa: ing('Sobrecoxa desossada', 'proteina', 24.9, 1, 'kg', 30),
+  acem: ing('Acém (carne de panela)', 'proteina', 36.9, 1, 'kg', 35),
+  patinhoBife: ing('Patinho em bife/tiras', 'proteina', 46.9, 1, 'kg', 25),
+  patinhoMoido: ing('Patinho moído', 'proteina', 42.9, 1, 'kg', 20),
+  tilapia: ing('Filé de tilápia', 'proteina', 54.9, 1, 'kg', 15),
+  lula: ing('Lula em anéis', 'proteina', 29.9, 500, 'g', 30),
+  camarao: ing('Camarão limpo', 'proteina', 39.9, 500, 'g', 25),
+  linguicaFrango: ing('Linguiça de frango', 'proteina', 14.9, 500, 'g', 20),
+  ovo: { ...ing('Ovo', 'proteina', 15.9, 30, 'un'), unitWeight: 50 },
+  graoDeBico: ing('Grão-de-bico', 'proteina', 12.9, 500, 'g', 0, 2.6),
+  lentilha: ing('Lentilha', 'proteina', 9.49, 500, 'g', 0, 2.5),
+  arrozIntegral: ing('Arroz integral', 'carboidrato', 8.49, 1, 'kg', 0, 2.5),
+  arrozBranco: ing('Arroz branco', 'carboidrato', 27.9, 5, 'kg', 0, 2.8),
+  feijao: ing('Feijão carioca', 'carboidrato', 8.99, 1, 'kg', 0, 2.4),
+  batata: ing('Batata inglesa', 'carboidrato', 6.99, 1, 'kg', 15),
+  batataDoce: ing('Batata-doce', 'carboidrato', 5.99, 1, 'kg', 12),
+  mandioquinha: ing('Mandioquinha', 'carboidrato', 12.9, 1, 'kg', 20),
+  linguine: ing('Linguine', 'carboidrato', 8.99, 500, 'g', 0, 2.3),
+  macarrao: ing('Macarrão parafuso', 'carboidrato', 5.49, 500, 'g', 0, 2.3),
+  brocolis: ing('Brócolis', 'legume', 7.99, 500, 'g', 35),
+  brocolisNinja: ing('Brócolis ninja', 'legume', 8.99, 300, 'g', 20),
+  cenoura: ing('Cenoura', 'legume', 4.99, 1, 'kg', 10),
+  abobrinha: ing('Abobrinha', 'legume', 5.49, 1, 'kg', 8),
+  berinjela: ing('Berinjela', 'legume', 6.99, 1, 'kg', 10),
+  chuchu: ing('Chuchu', 'legume', 4.99, 1, 'kg', 15),
+  tomate: ing('Tomate', 'legume', 7.99, 1, 'kg', 10),
+  vagem: ing('Vagem', 'legume', 9.99, 1, 'kg', 10),
+  couve: ing('Couve manteiga', 'legume', 3.99, 200, 'g', 30),
+  espinafre: ing('Espinafre', 'legume', 4.99, 300, 'g', 40),
+  champignon: ing('Champignon fatiado', 'legume', 9.9, 200, 'g'),
+  shimeji: ing('Shimeji', 'legume', 9.9, 200, 'g', 30),
+  cheiroVerde: ing('Cebolinha e cheiro-verde', 'tempero', 2.99, 100, 'g', 20),
+  laranja: ing('Laranja pera', 'outros', 4.99, 1, 'kg', 55),
+  limao: ing('Limão tahiti', 'outros', 5.99, 1, 'kg', 50),
+  leite: ing('Leite integral', 'outros', 5.29, 1, 'L'),
+  creme: ing('Creme de leite', 'outros', 3.49, 200, 'g'),
+  manteiga: ing('Manteiga', 'outros', 11.9, 200, 'g'),
+  mussarela: ing('Queijo muçarela', 'outros', 27.9, 500, 'g'),
+  parmesao: ing('Queijo parmesão ralado', 'outros', 9.9, 100, 'g'),
+  ricota: ing('Ricota fresca', 'outros', 12.9, 400, 'g'),
+  mascarpone: ing('Mascarpone', 'outros', 19.9, 250, 'g'),
+  agua: ing('Água filtrada', 'outros', 12, 20, 'L'),
+  molho: ing('Molho de tomate', 'tempero', 2.79, 340, 'g'),
+  azeite: ing('Azeite de oliva', 'tempero', 34.9, 500, 'ml'),
+  alhoCebola: ing('Alho e cebola', 'tempero', 9.9, 1, 'kg', 15),
+  sal: ing('Sal e temperos secos', 'tempero', 12, 1, 'kg'),
+} satisfies Record<string, CatalogIngredient>
+
+export type CatalogIngredientKey = keyof typeof catalogIngredients
+
+/** "pote" = marmita comum · "caldo" = pote redondo de sopa */
+export type DishPot = 'marmita' | 'caldo'
+
+export interface DishSize {
+  /** Peso da porção em gramas */
+  weight: number
+  /** Preço de venda conhecido (ex.: cardápio atual) */
+  price?: number
+}
+
+export interface CatalogDish {
+  id: string
+  name: string
+  category: RecipeCategory
+  kind?: RecipeKind
+  pot: DishPot
+  /** Ingredientes para a porção-base de `baseWeight` gramas (peso pronto) */
+  items: [CatalogIngredientKey, number][]
+  baseWeight: number
+  sizes: DishSize[]
+}
+
+export interface DishGroup {
+  title: string
+  description?: string
+  dishes: CatalogDish[]
+}
+
+const two = (p350?: number, p500?: number): DishSize[] => [
+  { weight: 350, price: p350 },
+  { weight: 500, price: p500 },
+]
+
+export const dishCatalog: DishGroup[] = [
+  {
+    title: 'Seu cardápio: Marmifit Camburi',
+    description: 'Pratos e preços do seu cardápio atual, em 350 g e 500 g.',
+    dishes: [
+      {
+        id: 'mc-carne-panela',
+        name: 'Carne de panela suculenta com purê de batata, arroz e feijão',
+        category: 'tradicional',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['acem', 100],
+          ['batata', 85],
+          ['leite', 10],
+          ['manteiga', 3],
+          ['arrozBranco', 90],
+          ['feijao', 55],
+          ['alhoCebola', 5],
+          ['sal', 2],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-sobrecoxa',
+        name: 'Sobrecoxa assada ao molho de laranja com batatas, arroz e legumes',
+        category: 'tradicional',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['sobrecoxa', 110],
+          ['laranja', 20],
+          ['batata', 70],
+          ['arrozBranco', 90],
+          ['cenoura', 30],
+          ['abobrinha', 25],
+          ['alhoCebola', 3],
+          ['sal', 2],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-strogonoff-carne',
+        name: 'Strogonoff de carne com purê de batata e arroz',
+        category: 'tradicional',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['patinhoBife', 100],
+          ['creme', 30],
+          ['champignon', 15],
+          ['molho', 15],
+          ['batata', 80],
+          ['leite', 8],
+          ['arrozIntegral', 95],
+          ['alhoCebola', 5],
+          ['sal', 2],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-parmegiana',
+        name: 'Parmegiana de carne fit com arroz e feijão',
+        category: 'tradicional',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['patinhoBife', 100],
+          ['molho', 30],
+          ['mussarela', 20],
+          ['arrozBranco', 120],
+          ['feijao', 75],
+          ['alhoCebola', 3],
+          ['sal', 2],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-peixe-cogumelos',
+        name: 'Filé de peixe grelhado com mix de cogumelos e purê de mandioquinha',
+        category: 'fit',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['tilapia', 120],
+          ['shimeji', 40],
+          ['champignon', 30],
+          ['mandioquinha', 140],
+          ['azeite', 5],
+          ['manteiga', 3],
+          ['limao', 10],
+          ['sal', 2],
+        ],
+        sizes: two(35, 40),
+      },
+      {
+        id: 'mc-risoto-frango',
+        name: 'Risoto integral de frango com legumes',
+        category: 'fit',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['arrozIntegral', 160],
+          ['frango', 90],
+          ['cenoura', 30],
+          ['abobrinha', 30],
+          ['brocolis', 25],
+          ['parmesao', 5],
+          ['alhoCebola', 7],
+          ['azeite', 3],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-risoto-lula',
+        name: 'Risoto integral de lula com vegetais',
+        category: 'fit',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['arrozIntegral', 180],
+          ['lula', 80],
+          ['camarao', 30],
+          ['tomate', 30],
+          ['cheiroVerde', 8],
+          ['alhoCebola', 10],
+          ['limao', 5],
+          ['azeite', 5],
+          ['sal', 2],
+        ],
+        sizes: two(38, 45),
+      },
+      {
+        id: 'mc-linguine',
+        name: 'Linguine ao limone com camarões',
+        category: 'fit',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['linguine', 190],
+          ['camarao', 100],
+          ['limao', 10],
+          ['creme', 25],
+          ['azeite', 8],
+          ['alhoCebola', 7],
+          ['parmesao', 8],
+          ['cheiroVerde', 2],
+        ],
+        sizes: two(48, 55),
+      },
+      {
+        id: 'mc-lasanha-berinjela',
+        name: 'Lasanha de berinjela com ricota',
+        category: 'vegetariana',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['berinjela', 170],
+          ['ricota', 90],
+          ['molho', 60],
+          ['mussarela', 15],
+          ['alhoCebola', 8],
+          ['azeite', 5],
+          ['sal', 2],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-risoto-vegetais',
+        name: 'Risoto integral com vegetais',
+        category: 'vegetariana',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['arrozIntegral', 190],
+          ['abobrinha', 45],
+          ['cenoura', 40],
+          ['brocolis', 40],
+          ['parmesao', 10],
+          ['alhoCebola', 15],
+          ['azeite', 5],
+          ['sal', 5],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-strogonoff-grao',
+        name: 'Strogonoff de grão-de-bico com vegetais e toque de mascarpone',
+        category: 'vegetariana',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['graoDeBico', 130],
+          ['mascarpone', 25],
+          ['molho', 35],
+          ['champignon', 30],
+          ['abobrinha', 40],
+          ['cenoura', 30],
+          ['arrozIntegral', 50],
+          ['alhoCebola', 8],
+          ['azeite', 2],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-cogumelos',
+        name: 'Mix de cogumelos com arroz integral e purê de mandioquinha',
+        category: 'vegetariana',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['shimeji', 60],
+          ['champignon', 40],
+          ['arrozIntegral', 120],
+          ['mandioquinha', 110],
+          ['manteiga', 5],
+          ['alhoCebola', 8],
+          ['azeite', 5],
+          ['sal', 2],
+        ],
+        sizes: two(30, 35),
+      },
+      {
+        id: 'mc-caldo-verde',
+        name: 'Caldo verde fit',
+        category: 'caldos',
+        pot: 'caldo',
+        baseWeight: 350,
+        items: [
+          ['batata', 120],
+          ['couve', 25],
+          ['linguicaFrango', 40],
+          ['alhoCebola', 15],
+          ['azeite', 5],
+          ['sal', 3],
+          ['agua', 142],
+        ],
+        sizes: two(25, 30),
+      },
+      {
+        id: 'mc-creme-mandioquinha',
+        name: 'Creme de mandioquinha',
+        category: 'caldos',
+        pot: 'caldo',
+        baseWeight: 350,
+        items: [
+          ['mandioquinha', 180],
+          ['alhoCebola', 15],
+          ['azeite', 5],
+          ['sal', 3],
+          ['agua', 147],
+        ],
+        sizes: two(25, 30),
+      },
+      {
+        id: 'mc-caldo-legumes',
+        name: 'Caldo de legumes',
+        category: 'caldos',
+        pot: 'caldo',
+        baseWeight: 350,
+        items: [
+          ['batata', 60],
+          ['cenoura', 50],
+          ['abobrinha', 50],
+          ['chuchu', 40],
+          ['alhoCebola', 15],
+          ['cheiroVerde', 5],
+          ['sal', 3],
+          ['agua', 127],
+        ],
+        sizes: two(25, 30),
+      },
+      {
+        id: 'mc-creme-batata',
+        name: 'Creme de batata com ricota',
+        category: 'caldos',
+        pot: 'caldo',
+        baseWeight: 350,
+        items: [
+          ['batata', 170],
+          ['ricota', 40],
+          ['alhoCebola', 15],
+          ['azeite', 5],
+          ['sal', 3],
+          ['agua', 117],
+        ],
+        sizes: two(25, 30),
+      },
+      {
+        id: 'mc-legumes-vapor',
+        name: 'Legumes no vapor (cenoura, abobrinha e brócolis)',
+        category: 'vegana',
+        kind: 'adicional',
+        pot: 'marmita',
+        baseWeight: 250,
+        items: [
+          ['cenoura', 85],
+          ['abobrinha', 85],
+          ['brocolis', 80],
+        ],
+        sizes: [{ weight: 250 }],
+      },
+      {
+        id: 'mc-verdes-vapor',
+        name: 'Mix de verdes no vapor (brócolis ninja, couve e espinafre)',
+        category: 'vegana',
+        kind: 'adicional',
+        pot: 'marmita',
+        baseWeight: 250,
+        items: [
+          ['brocolisNinja', 130],
+          ['espinafre', 60],
+          ['couve', 60],
+        ],
+        sizes: [{ weight: 250 }],
+      },
+    ],
+  },
+  {
+    title: 'Ideias de pratos',
+    description: 'Clássicos que vendem bem, para ampliar o cardápio.',
+    dishes: [
+      {
+        id: 'id-frango-batata-doce',
+        name: 'Frango grelhado com batata-doce e vagem',
+        category: 'fit',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['frango', 130],
+          ['batataDoce', 140],
+          ['vagem', 70],
+          ['azeite', 5],
+          ['sal', 5],
+        ],
+        sizes: two(),
+      },
+      {
+        id: 'id-escondidinho',
+        name: 'Escondidinho de frango com batata-doce',
+        category: 'fit',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['frango', 120],
+          ['batataDoce', 170],
+          ['ricota', 30],
+          ['molho', 20],
+          ['alhoCebola', 8],
+          ['sal', 2],
+        ],
+        sizes: two(),
+      },
+      {
+        id: 'id-frango-lowcarb',
+        name: 'Frango ao molho de tomate com legumes',
+        category: 'lowcarb',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['frango', 150],
+          ['abobrinha', 70],
+          ['brocolis', 70],
+          ['molho', 45],
+          ['alhoCebola', 10],
+          ['azeite', 5],
+        ],
+        sizes: two(),
+      },
+      {
+        id: 'id-omelete',
+        name: 'Omelete de forno com espinafre e muçarela',
+        category: 'lowcarb',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['ovo', 3],
+          ['espinafre', 60],
+          ['mussarela', 30],
+          ['tomate', 58],
+          ['abobrinha', 50],
+          ['sal', 2],
+        ],
+        sizes: two(),
+      },
+      {
+        id: 'id-lentilha',
+        name: 'Lentilha com arroz integral e legumes',
+        category: 'vegana',
+        pot: 'marmita',
+        baseWeight: 350,
+        items: [
+          ['lentilha', 100],
+          ['arrozIntegral', 120],
+          ['cenoura', 50],
+          ['abobrinha', 60],
+          ['alhoCebola', 12],
+          ['azeite', 5],
+          ['sal', 3],
+        ],
+        sizes: two(),
+      },
+      {
+        id: 'id-kids-macarrao',
+        name: 'Kids: macarrão com frango e cenoura',
+        category: 'kids',
+        pot: 'marmita',
+        baseWeight: 250,
+        items: [
+          ['macarrao', 120],
+          ['frango', 70],
+          ['cenoura', 35],
+          ['molho', 25],
+        ],
+        sizes: [{ weight: 250 }],
+      },
+      {
+        id: 'id-sopa-frango',
+        name: 'Sopa de frango com legumes',
+        category: 'caldos',
+        pot: 'caldo',
+        baseWeight: 350,
+        items: [
+          ['frango', 70],
+          ['batata', 70],
+          ['cenoura', 50],
+          ['abobrinha', 40],
+          ['macarrao', 20],
+          ['alhoCebola', 10],
+          ['cheiroVerde', 3],
+          ['sal', 3],
+          ['agua', 84],
+        ],
+        sizes: two(),
+      },
+    ],
+  },
+]

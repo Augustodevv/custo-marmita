@@ -43,6 +43,7 @@ export const packagingCatalog: CatalogGroup[] = [
       pp('Marmita PP 1000 g 3 divisórias', 1000, 'g', 3, 99.9),
       pp('Pote PP 100 ml (molho)', 100, 'ml', 1, 24.9),
       pp('Pote PP 250 ml (salada, sobremesa)', 250, 'ml', 1, 39.9),
+      pp('Pote PP 350 ml (sopa, caldo)', 350, 'ml', 1, 44.9),
       pp('Pote PP 500 ml (sopa, caldo)', 500, 'ml', 1, 49.9),
     ],
   },
