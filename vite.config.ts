@@ -8,6 +8,8 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   base: './',
   plugins: [react(), tailwindcss()],
+  // Recharts (Dashboard) e jsPDF (PDFs) ficam em partes separadas carregadas sob demanda
+  build: { chunkSizeWarningLimit: 450 },
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, './src') },
   },

@@ -1,4 +1,4 @@
-import { ArrowLeft, Camera, Copy, ImageOff, Scale, Trash2 } from 'lucide-react'
+import { ArrowLeft, Camera, Copy, ImageOff, Scale, Trash2, FileDown } from 'lucide-react'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -16,6 +16,7 @@ import { calcRecipeCost, potCapacity } from '@/lib/calc/recipe'
 import { costPerBaseUnit, packagingUnitCost } from '@/lib/calc/units'
 import { formatBRL, formatBRLUnit, formatNumber, formatPercent } from '@/lib/format'
 import { resizeImage } from '@/lib/image'
+import { exportRecipePdf } from '@/lib/pdf'
 import {
   ingredientCategoryLabels,
   capacityLabel,
@@ -111,6 +112,7 @@ function RecipeEditor({ recipe, newKind }: { recipe?: Recipe; newKind: RecipeKin
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }))
   const cost = calcRecipeCost(d, ingredients, packagingList)
   const ctx = usePricingContext()
+  const settings = useAppStore((s) => s.settings)
   const pricing = priceRecipe({ ...d, id: recipe?.id ?? 'rascunho', createdAt: '' }, ctx)
   const ingMap = useMemo(() => new Map(ingredients.map((i) => [i.id, i])), [ingredients])
   const packMap = useMemo(() => new Map(packagingList.map((p) => [p.id, p])), [packagingList])
@@ -295,6 +297,19 @@ function RecipeEditor({ recipe, newKind }: { recipe?: Recipe; newKind: RecipeKin
               }}
             >
               <Copy /> Duplicar ficha
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={dirty}
+              title={dirty ? 'Salve antes de gerar o PDF' : 'Baixar ficha técnica em PDF'}
+              onClick={() =>
+                exportRecipePdf(priceRecipe(recipe, ctx), ingredients, settings).catch(() =>
+                  toast.error('Não foi possível gerar o PDF.'),
+                )
+              }
+            >
+              <FileDown /> PDF
             </Button>
             <Button
               variant="ghost"

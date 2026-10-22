@@ -1,6 +1,7 @@
-import { AlertTriangle, CheckCircle2, ClipboardList, Settings2, TrendingDown } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ClipboardList, FileDown, Settings2, TrendingDown } from 'lucide-react'
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { EmptyState } from '@/components/common/EmptyState'
 import { InfoTip } from '@/components/common/InfoTip'
 import { NumberField } from '@/components/common/NumberField'
@@ -27,6 +28,7 @@ import {
 import { calcFixedCosts } from '@/lib/calc/fixed'
 import type { MarginStatus } from '@/lib/calc/pricing'
 import { formatBRL, formatPercent } from '@/lib/format'
+import { exportPriceTablePdf } from '@/lib/pdf'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { RecipeThumb } from '../recipes/RecipeThumb'
@@ -34,6 +36,7 @@ import { usePricingContext } from './usePricingContext'
 
 export function PricingPage() {
   const recipes = useAppStore((s) => s.recipes)
+  const settings = useAppStore((s) => s.settings)
   const ctx = usePricingContext()
   const [selectedId, setSelectedId] = useState<string | undefined>()
 
@@ -79,11 +82,23 @@ export function PricingPage() {
           </>
         }
         actions={
-          <Button variant="outline" asChild>
-            <Link to="/custos?aba=taxas">
-              <Settings2 /> Taxas e canais
-            </Link>
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              onClick={() =>
+                exportPriceTablePdf(rows, main.name, settings).catch(() =>
+                  toast.error('Não foi possível gerar o PDF.'),
+                )
+              }
+            >
+              <FileDown /> Tabela em PDF
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/custos?aba=taxas">
+                <Settings2 /> Taxas e canais
+              </Link>
+            </Button>
+          </>
         }
       />
 

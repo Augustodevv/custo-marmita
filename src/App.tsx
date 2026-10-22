@@ -2,36 +2,55 @@ import { createHashRouter, RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { CostsPage } from '@/pages/costs/CostsPage'
-import { DashboardPage } from '@/pages/dashboard/DashboardPage'
-import { IngredientsPage } from '@/pages/ingredients/IngredientsPage'
-import { KitsPage } from '@/pages/kits/KitsPage'
-import { NotFoundPage } from '@/pages/NotFoundPage'
-import { PackagingPage } from '@/pages/packaging/PackagingPage'
-import { PricingPage } from '@/pages/pricing/PricingPage'
-import { RecipeEditorPage } from '@/pages/recipes/RecipeEditorPage'
-import { RecipesPage } from '@/pages/recipes/RecipesPage'
-import { SettingsPage } from '@/pages/settings/SettingsPage'
-import { ShoppingPage } from '@/pages/shopping/ShoppingPage'
 import { useAppStore } from '@/store/useAppStore'
 
-// HashRouter: funciona em qualquer hospedagem estática (GitHub Pages) sem configurar o servidor
+// HashRouter: funciona em qualquer hospedagem estática (GitHub Pages, Vercel) sem configurar o servidor.
+// As telas são carregadas sob demanda para o app abrir rápido no celular.
 const router = createHashRouter([
   {
     path: '/',
     element: <AppLayout />,
     children: [
-      { index: true, element: <DashboardPage /> },
-      { path: 'ingredientes', element: <IngredientsPage /> },
-      { path: 'embalagens', element: <PackagingPage /> },
-      { path: 'fichas', element: <RecipesPage /> },
-      { path: 'fichas/:id', element: <RecipeEditorPage /> },
-      { path: 'custos', element: <CostsPage /> },
-      { path: 'precificacao', element: <PricingPage /> },
-      { path: 'kits', element: <KitsPage /> },
-      { path: 'compras', element: <ShoppingPage /> },
-      { path: 'configuracoes', element: <SettingsPage /> },
-      { path: '*', element: <NotFoundPage /> },
+      {
+        index: true,
+        lazy: () => import('@/pages/dashboard/DashboardPage').then((m) => ({ Component: m.DashboardPage })),
+      },
+      {
+        path: 'ingredientes',
+        lazy: () =>
+          import('@/pages/ingredients/IngredientsPage').then((m) => ({ Component: m.IngredientsPage })),
+      },
+      {
+        path: 'embalagens',
+        lazy: () => import('@/pages/packaging/PackagingPage').then((m) => ({ Component: m.PackagingPage })),
+      },
+      {
+        path: 'fichas',
+        lazy: () => import('@/pages/recipes/RecipesPage').then((m) => ({ Component: m.RecipesPage })),
+      },
+      {
+        path: 'fichas/:id',
+        lazy: () =>
+          import('@/pages/recipes/RecipeEditorPage').then((m) => ({ Component: m.RecipeEditorPage })),
+      },
+      {
+        path: 'custos',
+        lazy: () => import('@/pages/costs/CostsPage').then((m) => ({ Component: m.CostsPage })),
+      },
+      {
+        path: 'precificacao',
+        lazy: () => import('@/pages/pricing/PricingPage').then((m) => ({ Component: m.PricingPage })),
+      },
+      { path: 'kits', lazy: () => import('@/pages/kits/KitsPage').then((m) => ({ Component: m.KitsPage })) },
+      {
+        path: 'compras',
+        lazy: () => import('@/pages/shopping/ShoppingPage').then((m) => ({ Component: m.ShoppingPage })),
+      },
+      {
+        path: 'configuracoes',
+        lazy: () => import('@/pages/settings/SettingsPage').then((m) => ({ Component: m.SettingsPage })),
+      },
+      { path: '*', lazy: () => import('@/pages/NotFoundPage').then((m) => ({ Component: m.NotFoundPage })) },
     ],
   },
 ])
