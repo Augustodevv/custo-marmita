@@ -12,12 +12,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { priceRecipe } from '@/lib/calc/analysis'
-import { calcRecipeCost } from '@/lib/calc/recipe'
+import { calcRecipeCost, potCapacity } from '@/lib/calc/recipe'
 import { costPerBaseUnit, packagingUnitCost } from '@/lib/calc/units'
 import { formatBRL, formatBRLUnit, formatNumber, formatPercent } from '@/lib/format'
 import { resizeImage } from '@/lib/image'
 import {
   ingredientCategoryLabels,
+  capacityLabel,
   packagingTypeLabels,
   perDisplayUnit,
   recipeCategoryLabels,
@@ -120,6 +121,10 @@ function RecipeEditor({ recipe, newKind }: { recipe?: Recipe; newKind: RecipeKin
   const nameError = !d.name.trim()
   const qtyError = d.items.some((i) => !(i.qty > 0)) || d.packaging.some((p) => !(p.qty > 0))
   const weightDiff = d.targetWeight > 0 ? (cost.totalWeight - d.targetWeight) / d.targetWeight : 0
+  const capacity = potCapacity(d, packagingList)
+  // Porção considerada: o maior entre o peso dos ingredientes e o peso planejado
+  const portion = Math.max(cost.totalWeight, d.targetWeight)
+  const overflow = capacity !== null && portion > capacity * 1.02
 
   const save = () => {
     setSubmitted(true)
@@ -167,7 +172,7 @@ function RecipeEditor({ recipe, newKind }: { recipe?: Recipe; newKind: RecipeKin
       id: p.id,
       label: p.name,
       group: packagingTypeLabels[p.type],
-      detail: formatBRLUnit(packagingUnitCost(p)),
+      detail: [capacityLabel(p), formatBRLUnit(packagingUnitCost(p))].filter(Boolean).join(' · '),
     }))
 
   const summary = (
@@ -208,6 +213,15 @@ function RecipeEditor({ recipe, newKind }: { recipe?: Recipe; newKind: RecipeKin
             Os ingredientes somam {formatNumber(cost.totalWeight, 0)} g, mas o peso planejado é{' '}
             {formatNumber(d.targetWeight, 0)} g ({weightDiff > 0 ? '+' : ''}
             {formatPercent(weightDiff * 100, 0)}).
+          </p>
+        )}
+        {overflow && (
+          <p
+            role="alert"
+            className="rounded-md bg-red-500/10 px-3 py-2 text-xs font-medium text-red-700 dark:text-red-300"
+          >
+            A porção de {formatNumber(portion, 0)} g não cabe no pote de {formatNumber(capacity ?? 0, 0)}{' '}
+            g/ml. Troque por um pote maior ou reduza as quantidades.
           </p>
         )}
         {cost.ingredientsCost > 0 && (

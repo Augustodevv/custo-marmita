@@ -1,43 +1,56 @@
-import { Package, Pencil, Plus, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { BookOpen, Flame, Microwave, Package, Pencil, Plus, Snowflake, Trash2 } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { EmptyState } from '@/components/common/EmptyState'
-import { NumberField } from '@/components/common/NumberField'
-import { validateNumber } from '@/lib/validation'
 import { PageHeader } from '@/components/common/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { packagingUnitCost } from '@/lib/calc/units'
 import { formatBRL, formatBRLUnit, formatNumber } from '@/lib/format'
-import { packagingTypeLabels } from '@/lib/labels'
+import { capacityLabel, materialLabels, packagingTypeLabels } from '@/lib/labels'
 import type { Packaging, PackagingType } from '@/lib/types'
+import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
+import { CatalogDialog } from './CatalogDialog'
+import { PackagingForm } from './PackagingForm'
+
+const TYPE_ORDER = Object.keys(packagingTypeLabels) as PackagingType[]
+
+function Chip({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  )
+}
 
 export function PackagingPage() {
   const packaging = useAppStore((s) => s.packaging)
   const recipes = useAppStore((s) => s.recipes)
   const deletePackaging = useAppStore((s) => s.deletePackaging)
   const [formOpen, setFormOpen] = useState(false)
+  const [catalogOpen, setCatalogOpen] = useState(false)
   const [editing, setEditing] = useState<Packaging | undefined>()
   const [deleting, setDeleting] = useState<Packaging | undefined>()
+  const [type, setType] = useState<PackagingType | 'todas'>('todas')
 
   const usage = (id: string) => recipes.filter((r) => r.packaging.some((p) => p.packagingId === id)).length
 
-  const order = Object.keys(packagingTypeLabels)
-  const sorted = [...packaging].sort(
-    (a, b) => order.indexOf(a.type) - order.indexOf(b.type) || a.name.localeCompare(b.name, 'pt-BR'),
-  )
+  const usedTypes = TYPE_ORDER.filter((t) => packaging.some((p) => p.type === t))
+  const sorted = packaging
+    .filter((p) => type === 'todas' || p.type === type)
+    .sort(
+      (a, b) =>
+        TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type) ||
+        (a.capacity ?? 0) - (b.capacity ?? 0) ||
+        a.name.localeCompare(b.name, 'pt-BR'),
+    )
 
   const openNew = () => {
     setEditing(undefined)
@@ -48,66 +61,128 @@ export function PackagingPage() {
     <>
       <PageHeader
         title="Embalagens e descartáveis"
-        description="Pote, tampa, sacola, talher, etiqueta… informe o preço do pacote e quantas unidades vêm nele."
+        description="Potes de todos os tamanhos, tampas, sacolas, talheres, etiquetas… informe o preço do pacote e quantas unidades vêm nele."
         actions={
-          <Button onClick={openNew}>
-            <Plus /> Nova embalagem
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setCatalogOpen(true)}>
+              <BookOpen /> Catálogo
+            </Button>
+            <Button onClick={openNew}>
+              <Plus /> Nova embalagem
+            </Button>
+          </>
         }
       />
+
+      {packaging.length > 0 && (
+        <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+          {(['todas', ...usedTypes] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setType(t)}
+              className={cn(
+                'shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
+                type === t
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'bg-card hover:bg-secondary',
+              )}
+            >
+              {t === 'todas' ? 'Todas' : packagingTypeLabels[t]}
+            </button>
+          ))}
+        </div>
+      )}
 
       {packaging.length === 0 ? (
         <EmptyState
           icon={Package}
           title="Nenhuma embalagem cadastrada"
-          description="O custo do pote, tampa e etiqueta faz diferença no preço final. Cadastre-os aqui."
+          description="O custo do pote, tampa e etiqueta faz diferença no preço final. Comece pelo catálogo com os tamanhos mais usados."
           action={
-            <Button onClick={openNew}>
-              <Plus /> Cadastrar a primeira
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={() => setCatalogOpen(true)}>
+                <BookOpen /> Escolher no catálogo
+              </Button>
+              <Button variant="outline" onClick={openNew}>
+                <Plus /> Cadastrar manualmente
+              </Button>
+            </div>
           }
         />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {sorted.map((p) => (
-            <Card key={p.id} className="flex-row items-center gap-3 p-4">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary">
-                <Package className="size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{p.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {packagingTypeLabels[p.type]} · {formatBRL(p.packPrice)} / {formatNumber(p.packQty, 0)} un
-                </p>
-                <p className="mt-0.5 text-sm font-bold text-primary tabular-nums">
-                  {formatBRLUnit(packagingUnitCost(p))}{' '}
-                  <span className="text-xs font-medium text-muted-foreground">por unidade</span>
-                </p>
-              </div>
-              <div className="flex shrink-0 gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Editar ${p.name}`}
-                  onClick={() => {
-                    setEditing(p)
-                    setFormOpen(true)
-                  }}
-                >
-                  <Pencil />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={`Excluir ${p.name}`}
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setDeleting(p)}
-                >
-                  <Trash2 />
-                </Button>
-              </div>
-            </Card>
-          ))}
+          {sorted.map((p) => {
+            const cap = capacityLabel(p)
+            return (
+              <Card key={p.id} className="flex-row items-start gap-3 p-4">
+                <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-lg bg-secondary text-primary">
+                  {cap ? (
+                    <>
+                      <span className="text-sm leading-none font-bold">
+                        {formatNumber(p.capacity ?? 0, 0)}
+                      </span>
+                      <span className="text-[10px] leading-tight">{p.capacityUnit ?? 'ml'}</span>
+                    </>
+                  ) : (
+                    <Package className="size-5" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {packagingTypeLabels[p.type]} · {formatBRL(p.packPrice)} / {formatNumber(p.packQty, 0)} un
+                    {p.supplier && ` · ${p.supplier}`}
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {p.material && <Chip>{materialLabels[p.material]}</Chip>}
+                    {p.compartments && p.compartments > 1 && <Chip>{p.compartments} divisórias</Chip>}
+                    {p.microwave && (
+                      <Chip>
+                        <Microwave className="size-3" /> Micro-ondas
+                      </Chip>
+                    )}
+                    {p.freezer && (
+                      <Chip>
+                        <Snowflake className="size-3" /> Freezer
+                      </Chip>
+                    )}
+                    {p.type === 'pote' && p.microwave === false && (
+                      <Chip className="border-amber-500/40 text-amber-700 dark:text-amber-300">
+                        <Flame className="size-3" /> Não vai ao micro-ondas
+                      </Chip>
+                    )}
+                  </div>
+                  <p className="mt-1.5 text-sm font-bold text-primary tabular-nums">
+                    {formatBRLUnit(packagingUnitCost(p))}{' '}
+                    <span className="text-xs font-medium text-muted-foreground">por unidade</span>
+                  </p>
+                </div>
+                <div className="-mt-1 -mr-2 flex shrink-0 flex-col">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Editar ${p.name}`}
+                    onClick={() => {
+                      setEditing(p)
+                      setFormOpen(true)
+                    }}
+                  >
+                    <Pencil />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Excluir ${p.name}`}
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setDeleting(p)}
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              </Card>
+            )
+          })}
         </div>
       )}
 
@@ -123,6 +198,8 @@ export function PackagingPage() {
         </DialogContent>
       </Dialog>
 
+      <CatalogDialog open={catalogOpen} onOpenChange={setCatalogOpen} />
+
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(o) => !o && setDeleting(undefined)}
@@ -136,99 +213,5 @@ export function PackagingPage() {
         onConfirm={() => deleting && deletePackaging(deleting.id)}
       />
     </>
-  )
-}
-
-function PackagingForm({ packaging, onDone }: { packaging?: Packaging; onDone: () => void }) {
-  const addPackaging = useAppStore((s) => s.addPackaging)
-  const updatePackaging = useAppStore((s) => s.updatePackaging)
-  const [name, setName] = useState(packaging?.name ?? '')
-  const [type, setType] = useState<PackagingType>(packaging?.type ?? 'pote')
-  const [packPrice, setPackPrice] = useState<number | undefined>(packaging?.packPrice)
-  const [packQty, setPackQty] = useState<number | undefined>(packaging?.packQty ?? 100)
-  const [submitted, setSubmitted] = useState(false)
-
-  const errors = [
-    name.trim() ? null : 'nome',
-    validateNumber(packPrice, { required: true }),
-    validateNumber(packQty, { required: true, positive: true }),
-  ]
-  const valid = errors.every((e) => e === null)
-  const unitCost = packagingUnitCost({ packPrice: packPrice ?? 0, packQty: packQty ?? 0 })
-
-  return (
-    <form
-      className="grid gap-4"
-      onSubmit={(e) => {
-        e.preventDefault()
-        setSubmitted(true)
-        if (!valid) return
-        const data = { name: name.trim(), type, packPrice: packPrice ?? 0, packQty: packQty ?? 1 }
-        if (packaging) updatePackaging(packaging.id, { ...data, sample: false })
-        else addPackaging(data)
-        onDone()
-      }}
-    >
-      <DialogHeader>
-        <DialogTitle>{packaging ? 'Editar embalagem' : 'Nova embalagem'}</DialogTitle>
-        <DialogDescription>O custo por unidade é calculado automaticamente.</DialogDescription>
-      </DialogHeader>
-      <div className="grid gap-1.5">
-        <Label htmlFor="pk-name">Nome</Label>
-        <Input
-          id="pk-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Ex.: Pote 750 ml com divisória"
-          aria-invalid={submitted && !name.trim()}
-          autoFocus
-        />
-        {submitted && !name.trim() && <p className="text-xs text-destructive">Informe o nome</p>}
-      </div>
-      <div className="grid gap-1.5">
-        <Label>Tipo</Label>
-        <Select value={type} onValueChange={(v) => setType(v as PackagingType)}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(packagingTypeLabels).map(([k, v]) => (
-              <SelectItem key={k} value={k}>
-                {v}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <NumberField
-          label="Preço do pacote"
-          prefix="R$"
-          value={packPrice}
-          onValueChange={setPackPrice}
-          required
-          showErrors={submitted}
-        />
-        <NumberField
-          label="Unidades no pacote"
-          value={packQty}
-          onValueChange={setPackQty}
-          positive
-          required
-          decimals={0}
-          showErrors={submitted}
-        />
-      </div>
-      <div className="rounded-xl bg-primary/10 p-4">
-        <p className="text-xs font-medium text-muted-foreground uppercase">Custo por unidade</p>
-        <p className="mt-1 text-2xl font-bold text-primary tabular-nums">{formatBRLUnit(unitCost)}</p>
-      </div>
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onDone}>
-          Cancelar
-        </Button>
-        <Button type="submit">Salvar</Button>
-      </DialogFooter>
-    </form>
   )
 }

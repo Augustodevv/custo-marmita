@@ -2,6 +2,7 @@ import type {
   BaseUnit,
   ChannelPayment,
   IngredientCategory,
+  PackagingMaterial,
   PackagingType,
   RecipeCategory,
   RecipeSize,
@@ -87,4 +88,21 @@ export function bigUnit(base: BaseUnit): { unit: string; factor: number } {
   if (base === 'g') return { unit: 'kg', factor: 1000 }
   if (base === 'ml') return { unit: 'L', factor: 1000 }
   return { unit: 'un', factor: 1 }
+}
+
+export const materialLabels: Record<PackagingMaterial, string> = {
+  pp: 'Plástico PP',
+  aluminio: 'Alumínio',
+  isopor: 'Isopor (EPS)',
+  biodegradavel: 'Biodegradável (bagaço de cana)',
+  papel: 'Papel / kraft',
+  vidro: 'Vidro',
+  pet: 'PET',
+  outros: 'Outro',
+}
+
+/** "350 g", "750 ml" */
+export function capacityLabel(p: { capacity?: number; capacityUnit?: 'g' | 'ml' }): string | null {
+  if (!p.capacity || p.capacity <= 0) return null
+  return `${p.capacity.toLocaleString('pt-BR')} ${p.capacityUnit ?? 'ml'}`
 }

@@ -98,3 +98,21 @@ export function duplicateRecipe(recipe: Recipe, newId: string, now: string): Rec
     sample: false,
   }
 }
+
+/**
+ * Capacidade total dos potes da ficha (ml conta como g). `null` quando nenhum
+ * pote tem capacidade informada.
+ */
+export function potCapacity(recipe: Pick<Recipe, 'packaging'>, packaging: Packaging[]): number | null {
+  const map = new Map(packaging.map((p) => [p.id, p]))
+  let total = 0
+  let known = false
+  for (const pk of recipe.packaging) {
+    const p = map.get(pk.packagingId)
+    if (p?.type === 'pote' && p.capacity && p.capacity > 0) {
+      total += p.capacity * nonNeg(pk.qty)
+      known = true
+    }
+  }
+  return known ? total : null
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Ingredient, Packaging, Recipe } from '../types'
-import { calcRecipeCost, duplicateRecipe } from './recipe'
+import { calcRecipeCost, duplicateRecipe, potCapacity } from './recipe'
 
 const ingredients: Ingredient[] = [
   {
@@ -97,5 +97,38 @@ describe('ficha técnica', () => {
     expect(copy.name).toBe('Frango com arroz (cópia)')
     copy.items[0].qty = 999
     expect(recipe.items[0].qty).toBe(150)
+  })
+})
+
+describe('capacidade do pote', () => {
+  const potes: Packaging[] = [
+    {
+      id: 'p350',
+      name: 'Marmita 350 g',
+      type: 'pote',
+      capacity: 350,
+      capacityUnit: 'g',
+      packPrice: 50,
+      packQty: 100,
+    },
+    { id: 'tampa', name: 'Tampa', type: 'tampa', packPrice: 10, packQty: 100 },
+  ]
+
+  it('soma a capacidade dos potes da ficha', () => {
+    expect(
+      potCapacity(
+        {
+          packaging: [
+            { packagingId: 'p350', qty: 2 },
+            { packagingId: 'tampa', qty: 1 },
+          ],
+        },
+        potes,
+      ),
+    ).toBe(700)
+  })
+
+  it('sem capacidade informada retorna null', () => {
+    expect(potCapacity({ packaging: [{ packagingId: 'tampa', qty: 1 }] }, potes)).toBeNull()
   })
 })

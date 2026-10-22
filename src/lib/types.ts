@@ -44,10 +44,24 @@ export interface Ingredient {
 export type PackagingType =
   'pote' | 'tampa' | 'sacola' | 'talher' | 'guardanapo' | 'etiqueta' | 'lacre' | 'outros'
 
+export type PackagingMaterial =
+  'pp' | 'aluminio' | 'isopor' | 'biodegradavel' | 'papel' | 'vidro' | 'pet' | 'outros'
+
 export interface Packaging {
   id: string
   name: string
   type: PackagingType
+  /** Capacidade do pote (ex.: 350 g, 750 ml) */
+  capacity?: number
+  capacityUnit?: 'g' | 'ml'
+  material?: PackagingMaterial
+  /** Número de divisórias/compartimentos */
+  compartments?: number
+  /** Pode ir ao micro-ondas */
+  microwave?: boolean
+  /** Pode ir ao freezer (marmitas congeladas) */
+  freezer?: boolean
+  supplier?: string
   /** Preço do pacote, em R$ */
   packPrice: number
   /** Quantidade de itens no pacote */
