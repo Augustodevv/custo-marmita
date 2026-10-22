@@ -2,9 +2,7 @@ import type { CostSettings, LaborEntry } from '../types'
 import { nonNeg, safeDiv, sum } from './math'
 
 export function laborMonthly(entry: LaborEntry): number {
-  return entry.mode === 'mensal'
-    ? nonNeg(entry.monthly)
-    : nonNeg(entry.hourlyRate) * nonNeg(entry.hours)
+  return entry.mode === 'mensal' ? nonNeg(entry.monthly) : nonNeg(entry.hourlyRate) * nonNeg(entry.hours)
 }
 
 export interface FixedCostBreakdown {

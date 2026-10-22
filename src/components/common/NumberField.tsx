@@ -63,9 +63,7 @@ export function NumberField({
 
   const parsed = text.trim() === '' ? undefined : parseBRNumber(text)
   const invalidFormat = parsed !== undefined && Number.isNaN(parsed)
-  const error = invalidFormat
-    ? 'Número inválido'
-    : validateNumber(parsed, { min, max, positive, required })
+  const error = invalidFormat ? 'Número inválido' : validateNumber(parsed, { min, max, positive, required })
   const showError = (touched || showErrors) && error
 
   return (

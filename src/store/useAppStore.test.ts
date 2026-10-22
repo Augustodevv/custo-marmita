@@ -4,7 +4,12 @@ import { defaultCosts, removeSampleData } from './useAppStore'
 
 describe('limpar dados de exemplo', () => {
   it('remove tudo que é exemplo quando não há fichas do usuário', () => {
-    const r = removeSampleData({ ingredients: sampleIngredients, packaging: samplePackaging, recipes: sampleRecipes, costs: defaultCosts })
+    const r = removeSampleData({
+      ingredients: sampleIngredients,
+      packaging: samplePackaging,
+      recipes: sampleRecipes,
+      costs: defaultCosts,
+    })
     expect(r.ingredients).toHaveLength(0)
     expect(r.packaging).toHaveLength(0)
     expect(r.recipes).toHaveLength(0)

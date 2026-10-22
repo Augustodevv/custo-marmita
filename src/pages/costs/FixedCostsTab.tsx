@@ -53,7 +53,10 @@ export function FixedCostsTab() {
           </CardHeader>
           <CardContent className="grid gap-3">
             {costs.fixedCosts.map((f) => (
-              <div key={f.id} className="grid grid-cols-[1fr_120px_auto] items-start gap-2 sm:grid-cols-[1fr_160px_auto]">
+              <div
+                key={f.id}
+                className="grid grid-cols-[1fr_120px_auto] items-start gap-2 sm:grid-cols-[1fr_160px_auto]"
+              >
                 <Input
                   value={f.name}
                   aria-label="Nome do custo"
@@ -173,7 +176,10 @@ export function FixedCostsTab() {
                   </div>
                 )}
                 <p className="text-right text-sm text-muted-foreground">
-                  No mês: <span className="font-semibold text-foreground tabular-nums">{formatBRL(laborMonthly(l))}</span>
+                  No mês:{' '}
+                  <span className="font-semibold text-foreground tabular-nums">
+                    {formatBRL(laborMonthly(l))}
+                  </span>
                 </p>
               </div>
             ))}
@@ -233,7 +239,9 @@ export function FixedCostsTab() {
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Gás por marmita:{' '}
-                  <span className="font-semibold text-foreground tabular-nums">{formatBRL(b.gasPerMeal)}</span>
+                  <span className="font-semibold text-foreground tabular-nums">
+                    {formatBRL(b.gasPerMeal)}
+                  </span>
                 </p>
               </>
             ) : (
@@ -290,7 +298,9 @@ export function FixedCostsTab() {
               label={`÷ ${formatNumber(costs.monthlyProduction, 0)} marmitas`}
               value={formatBRL(b.perMealFromMonthly)}
             />
-            {costs.gas.mode === 'botijao' && <SummaryRow label="+ gás (botijão)" value={formatBRL(b.gasPerMeal)} />}
+            {costs.gas.mode === 'botijao' && (
+              <SummaryRow label="+ gás (botijão)" value={formatBRL(b.gasPerMeal)} />
+            )}
             <div className="mt-1 rounded-lg bg-primary px-3 py-2.5 text-primary-foreground">
               <p className="text-xs opacity-90">Custo fixo por marmita</p>
               <p className="text-2xl font-bold tabular-nums">{formatBRL(b.perMeal)}</p>

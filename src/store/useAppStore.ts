@@ -4,14 +4,7 @@ import { applyPriceUpdate } from '@/lib/calc/units'
 import { duplicateRecipe as duplicateRecipeCalc } from '@/lib/calc/recipe'
 import { todayISO } from '@/lib/format'
 import { newId } from '@/lib/id'
-import type {
-  CostSettings,
-  FeeSettings,
-  Ingredient,
-  Packaging,
-  PricingSettings,
-  Recipe,
-} from '@/lib/types'
+import type { CostSettings, FeeSettings, Ingredient, Packaging, PricingSettings, Recipe } from '@/lib/types'
 import {
   sampleFixedCosts,
   sampleIngredients,

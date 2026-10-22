@@ -21,7 +21,9 @@ export function useApplyTheme() {
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDark)
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#141c18' : '#f9faf7')
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', isDark ? '#141c18' : '#f9faf7')
   }, [isDark])
 
   return isDark

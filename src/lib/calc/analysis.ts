@@ -57,11 +57,25 @@ export function primaryChannel(ctx: Pick<PricingContext, 'fees' | 'pricing'>): S
   )
 }
 
-export function priceRecipe(recipe: Recipe, ctx: PricingContext, channel = primaryChannel(ctx)): RecipePricing {
+export const isExtra = (r: Pick<Recipe, 'kind'>) => r.kind === 'adicional'
+
+export function priceRecipe(
+  recipe: Recipe,
+  ctx: PricingContext,
+  channel = primaryChannel(ctx),
+): RecipePricing {
   const recipeCost = calcRecipeCost(recipe, ctx.ingredients, ctx.packaging)
-  const fixed = calcFixedCosts(ctx.costs)
   const feePercent = channelFeePercent(ctx.fees, channel)
-  const cost = unitCost(recipeCost.ingredientsCost, recipeCost.packagingCost, fixed.perMeal, ctx.fees, channel)
+  // Adicionais vão junto com uma marmita: não recebem rateio de custo fixo nem entrega
+  const extra = isExtra(recipe)
+  const fixedPerMeal = extra ? 0 : calcFixedCosts(ctx.costs).perMeal
+  const cost = unitCost(
+    recipeCost.ingredientsCost,
+    recipeCost.packagingCost,
+    fixedPerMeal,
+    ctx.fees,
+    extra ? { ...channel, ownDelivery: false } : channel,
+  )
   const desiredMargin = recipe.desiredMargin ?? ctx.pricing.defaultMargin
   const isPrimary = channel.id === primaryChannel(ctx).id
   const current =
@@ -122,7 +136,8 @@ export function compareChannels(recipe: Recipe, ctx: PricingContext): ChannelCom
       feePercent: p.feePercent,
       cost: p.cost.total,
       suggested: p.suggested,
-      sameProfitPrice: referenceProfit === null ? null : priceForProfit(p.cost.total, p.feePercent, referenceProfit),
+      sameProfitPrice:
+        referenceProfit === null ? null : priceForProfit(p.cost.total, p.feePercent, referenceProfit),
     }
   })
   return { referenceProfit, basis, rows }

@@ -62,7 +62,7 @@ export function ItemPicker({ options, onPick, label, placeholder = 'Buscar…', 
         <div className="max-h-72 overflow-y-auto p-1">
           {groups.length === 0 && (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-              {options.length === 0 ? emptyText ?? 'Nada para adicionar.' : 'Nada encontrado.'}
+              {options.length === 0 ? (emptyText ?? 'Nada para adicionar.') : 'Nada encontrado.'}
             </div>
           )}
           {groups.map(([group, items]) => (
@@ -84,7 +84,9 @@ export function ItemPicker({ options, onPick, label, placeholder = 'Buscar…', 
                   className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-2 text-left text-sm hover:bg-secondary focus-visible:bg-secondary focus-visible:outline-none"
                 >
                   <span className="truncate">{o.label}</span>
-                  {o.detail && <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{o.detail}</span>}
+                  {o.detail && (
+                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{o.detail}</span>
+                  )}
                 </button>
               ))}
             </div>

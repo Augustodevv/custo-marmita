@@ -38,14 +38,7 @@ export interface Ingredient {
 }
 
 export type PackagingType =
-  | 'pote'
-  | 'tampa'
-  | 'sacola'
-  | 'talher'
-  | 'guardanapo'
-  | 'etiqueta'
-  | 'lacre'
-  | 'outros'
+  'pote' | 'tampa' | 'sacola' | 'talher' | 'guardanapo' | 'etiqueta' | 'lacre' | 'outros'
 
 export interface Packaging {
   id: string
@@ -72,8 +65,13 @@ export interface RecipePackaging {
   qty: number
 }
 
+/** "adicional": item vendido junto com a marmita (proteína extra, salada, sobremesa, suco…) */
+export type RecipeKind = 'marmita' | 'adicional'
+
 export interface Recipe {
   id: string
+  /** Ausente = marmita (compatível com dados antigos) */
+  kind?: RecipeKind
   name: string
   /** Foto reduzida em data URL (JPEG) */
   photo?: string

@@ -9,9 +9,19 @@ interface SegmentedProps<T extends string> {
 }
 
 /** Alternador compacto (ex.: Mensal | Por hora). */
-export function Segmented<T extends string>({ value, onChange, options, className, ...rest }: SegmentedProps<T>) {
+export function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+  className,
+  ...rest
+}: SegmentedProps<T>) {
   return (
-    <div role="radiogroup" aria-label={rest['aria-label']} className={cn('inline-flex rounded-lg border bg-muted/50 p-0.5', className)}>
+    <div
+      role="radiogroup"
+      aria-label={rest['aria-label']}
+      className={cn('inline-flex rounded-lg border bg-muted/50 p-0.5', className)}
+    >
       {options.map((o) => (
         <button
           key={o.value}
@@ -21,7 +31,9 @@ export function Segmented<T extends string>({ value, onChange, options, classNam
           onClick={() => onChange(o.value)}
           className={cn(
             'flex-1 rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors',
-            value === o.value ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+            value === o.value
+              ? 'bg-card text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
           )}
         >
           {o.label}

@@ -15,12 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { baseUnitOf, costPerBaseUnit, priceVariation } from '@/lib/calc/units'
 import { formatBRL, formatDate, formatNumber, formatPercent } from '@/lib/format'
-import {
-  ingredientCategoryColors,
-  ingredientCategoryLabels,
-  perDisplayUnit,
-  unitLabels,
-} from '@/lib/labels'
+import { ingredientCategoryColors, ingredientCategoryLabels, perDisplayUnit, unitLabels } from '@/lib/labels'
 import type { Ingredient, IngredientCategory } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
@@ -183,7 +178,10 @@ export function IngredientsPage() {
                     <p className="font-medium tabular-nums">
                       {formatPercent(ing.lossPercent, 0)}
                       {(ing.cookingYield ?? 1) !== 1 && (
-                        <span className="text-muted-foreground"> · {formatNumber(ing.cookingYield ?? 1)}×</span>
+                        <span className="text-muted-foreground">
+                          {' '}
+                          · {formatNumber(ing.cookingYield ?? 1)}×
+                        </span>
                       )}
                     </p>
                   </div>

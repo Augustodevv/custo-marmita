@@ -14,7 +14,10 @@ export function CostsPage() {
         title="Custos e taxas"
         description="Despesas do mês, mão de obra, impostos e taxas de cada canal de venda."
       />
-      <Tabs value={tab} onValueChange={(v) => setParams(v === 'taxas' ? { aba: 'taxas' } : {}, { replace: true })}>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => setParams(v === 'taxas' ? { aba: 'taxas' } : {}, { replace: true })}
+      >
         <TabsList className="mb-2 w-full sm:w-auto">
           <TabsTrigger value="fixos" className="flex-1 sm:flex-none sm:px-5">
             Custos fixos

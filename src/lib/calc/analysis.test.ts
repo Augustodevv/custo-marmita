@@ -71,4 +71,11 @@ describe('precificação completa da marmita', () => {
     expect(c.basis).toBe('sugerido')
     expect(c.referenceProfit).toBeCloseTo(2.5) // 12,50 × 20%
   })
+
+  it('adicional não recebe rateio de custo fixo nem entrega', () => {
+    const p = priceRecipe({ ...recipe, kind: 'adicional' }, ctx)
+    expect(p.cost.fixed).toBe(0)
+    expect(p.cost.delivery).toBe(0)
+    expect(p.cost.total).toBeCloseTo(6) // arroz R$ 5 + pote R$ 1
+  })
 })

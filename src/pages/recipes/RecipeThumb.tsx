@@ -1,7 +1,15 @@
 import { UtensilsCrossed } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export function RecipeThumb({ photo, name, className }: { photo?: string; name: string; className?: string }) {
+export function RecipeThumb({
+  photo,
+  name,
+  className,
+}: {
+  photo?: string
+  name: string
+  className?: string
+}) {
   return (
     <div
       className={cn(

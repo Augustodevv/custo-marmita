@@ -18,5 +18,7 @@ const statusStyles: Record<MarginStatus, { label: string; className: string }> =
 
 export function StatusBadge({ status }: { status: MarginStatus }) {
   const s = statusStyles[status]
-  return <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', s.className)}>{s.label}</span>
+  return (
+    <span className={cn('rounded-full px-2 py-0.5 text-[11px] font-semibold', s.className)}>{s.label}</span>
+  )
 }

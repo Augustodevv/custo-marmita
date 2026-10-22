@@ -1,6 +1,6 @@
 import { ArrowLeft, Camera, Copy, ImageOff, Scale, Trash2 } from 'lucide-react'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
-import { Link, useBlocker, useNavigate, useParams } from 'react-router-dom'
+import { Link, useBlocker, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { InfoTip } from '@/components/common/InfoTip'
@@ -23,7 +23,7 @@ import {
   recipeCategoryLabels,
 } from '@/lib/labels'
 import { baseUnitOf } from '@/lib/calc/units'
-import type { Recipe, RecipeCategory, RecipeSize } from '@/lib/types'
+import type { Recipe, RecipeCategory, RecipeKind, RecipeSize } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { usePricingContext } from '../pricing/usePricingContext'
@@ -44,6 +44,8 @@ const SIZE_HINT: Record<RecipeSize, string> = { P: '≈ 250 g', M: '≈ 350 g', 
 
 export function RecipeEditorPage() {
   const { id } = useParams()
+  const [params] = useSearchParams()
+  const newKind: RecipeKind = params.get('tipo') === 'adicional' ? 'adicional' : 'marmita'
   const recipe = useAppStore((s) => s.recipes.find((r) => r.id === id))
   if (id && id !== 'nova' && !recipe) {
     return (
@@ -56,7 +58,7 @@ export function RecipeEditorPage() {
     )
   }
   // key: reinicia o rascunho ao navegar entre fichas (ex.: depois de duplicar)
-  return <RecipeEditor key={recipe?.id ?? 'nova'} recipe={recipe} />
+  return <RecipeEditor key={recipe?.id ?? `nova-${newKind}`} recipe={recipe} newKind={newKind} />
 }
 
 function toDraft(r: Recipe): Draft {
@@ -76,7 +78,7 @@ function Section({ title, action, children }: { title: ReactNode; action?: React
   )
 }
 
-function RecipeEditor({ recipe }: { recipe?: Recipe }) {
+function RecipeEditor({ recipe, newKind }: { recipe?: Recipe; newKind: RecipeKind }) {
   const ingredients = useAppStore((s) => s.ingredients)
   const packagingList = useAppStore((s) => s.packaging)
   const addRecipe = useAppStore((s) => s.addRecipe)
@@ -86,7 +88,15 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
   const navigate = useNavigate()
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const original = useMemo(() => (recipe ? toDraft(recipe) : emptyDraft), [recipe])
+  const original = useMemo<Draft>(
+    () =>
+      recipe
+        ? toDraft(recipe)
+        : newKind === 'adicional'
+          ? { ...emptyDraft, kind: 'adicional', size: 'P', targetWeight: 100 }
+          : emptyDraft,
+    [recipe, newKind],
+  )
   const [d, setD] = useState<Draft>(original)
   const [submitted, setSubmitted] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -104,6 +114,9 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
   const ingMap = useMemo(() => new Map(ingredients.map((i) => [i.id, i])), [ingredients])
   const packMap = useMemo(() => new Map(packagingList.map((p) => [p.id, p])), [packagingList])
 
+  const extra = d.kind === 'adicional'
+  const backPath = extra ? '/fichas?tipo=adicionais' : '/fichas'
+  const noun = extra ? 'Adicional' : 'Ficha técnica'
   const nameError = !d.name.trim()
   const qtyError = d.items.some((i) => !(i.qty > 0)) || d.packaging.some((p) => !(p.qty > 0))
   const weightDiff = d.targetWeight > 0 ? (cost.totalWeight - d.targetWeight) / d.targetWeight : 0
@@ -118,13 +131,12 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
     const data = { ...d, name: d.name.trim(), sample: false }
     if (recipe) {
       updateRecipe(recipe.id, data)
-      toast.success('Ficha técnica salva!')
-      navigate('/fichas')
+      toast.success(`${noun} salvo!`)
     } else {
       addRecipe(data)
-      toast.success('Ficha técnica criada!')
-      navigate('/fichas')
+      toast.success(`${noun} criado!`)
     }
+    navigate(backPath)
   }
 
   const onPhoto = async (file?: File) => {
@@ -164,16 +176,31 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
         <CardTitle className="text-base">Custo da porção</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3 px-5 text-sm">
-        <Row label={<>Insumos (CMV) <InfoTip term="cmv" /></>} value={formatBRL(cost.ingredientsCost)} />
+        <Row
+          label={
+            <>
+              Insumos (CMV) <InfoTip term="cmv" />
+            </>
+          }
+          value={formatBRL(cost.ingredientsCost)}
+        />
         <Row label="Embalagens" value={formatBRL(cost.packagingCost)} />
         <div className="border-t pt-3">
           <Row
-            label={<>Custo direto <InfoTip term="custoDireto" /></>}
+            label={
+              <>
+                Custo direto <InfoTip term="custoDireto" />
+              </>
+            }
             value={<span className="text-xl font-bold text-primary">{formatBRL(cost.directCost)}</span>}
           />
         </div>
         <Row
-          label={<span className="flex items-center gap-1.5"><Scale className="size-4" /> Peso da porção</span>}
+          label={
+            <span className="flex items-center gap-1.5">
+              <Scale className="size-4" /> Peso da porção
+            </span>
+          }
           value={`${formatNumber(cost.totalWeight, 0)} g`}
         />
         {d.targetWeight > 0 && cost.items.length > 0 && Math.abs(weightDiff) > 0.05 && (
@@ -206,10 +233,17 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
           </div>
         )}
         <div className="grid gap-2 border-t pt-3">
-          <Row label="Custo total (com fixos e entrega)" value={formatBRL(pricing.cost.total)} />
+          <Row
+            label={extra ? 'Custo total (com embalagem)' : 'Custo total (com fixos e entrega)'}
+            value={formatBRL(pricing.cost.total)}
+          />
           <Row
             label={`Preço sugerido (${formatPercent(pricing.desiredMargin, 0)} de margem)`}
-            value={<span className="text-primary">{pricing.suggested.ok ? formatBRL(pricing.suggested.price) : '—'}</span>}
+            value={
+              <span className="text-primary">
+                {pricing.suggested.ok ? formatBRL(pricing.suggested.price) : '—'}
+              </span>
+            }
           />
           <p className="text-xs text-muted-foreground">
             Detalhes, preço praticado e canais em{' '}
@@ -227,8 +261,8 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
     <div className="pb-20 lg:pb-0">
       <div className="mb-4 flex items-center justify-between gap-2">
         <Button variant="ghost" size="sm" asChild className="-ml-2">
-          <Link to="/fichas">
-            <ArrowLeft /> Fichas
+          <Link to={backPath}>
+            <ArrowLeft /> {extra ? 'Adicionais' : 'Fichas'}
           </Link>
         </Button>
         {recipe && (
@@ -262,12 +296,18 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
       </div>
 
       <h1 className="mb-5 text-2xl font-bold tracking-tight">
-        {recipe ? 'Editar ficha técnica' : 'Nova ficha técnica'}
+        {extra
+          ? recipe
+            ? 'Editar adicional'
+            : 'Novo adicional'
+          : recipe
+            ? 'Editar ficha técnica'
+            : 'Nova ficha técnica'}
       </h1>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
         <div className="grid gap-4">
-          <Section title="Dados da marmita">
+          <Section title={extra ? 'Dados do adicional' : 'Dados da marmita'}>
             <div className="grid gap-4">
               <div className="flex gap-4">
                 <div className="relative">
@@ -297,60 +337,75 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
               </div>
 
               <div className="grid gap-1.5">
-                <Label htmlFor="r-name">Nome da marmita</Label>
+                <Label htmlFor="r-name">{extra ? 'Nome do adicional' : 'Nome da marmita'}</Label>
                 <Input
                   id="r-name"
                   value={d.name}
                   onChange={(e) => set('name', e.target.value)}
-                  placeholder="Ex.: Frango grelhado com arroz integral e brócolis"
+                  placeholder={
+                    extra
+                      ? 'Ex.: Salada de folhas, suco natural, porção extra de frango'
+                      : 'Ex.: Frango grelhado com arroz integral e brócolis'
+                  }
                   aria-invalid={submitted && nameError}
                 />
                 {submitted && nameError && <p className="text-xs text-destructive">Informe o nome</p>}
               </div>
 
-              <div className="grid gap-1.5">
-                <Label>Categoria</Label>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(recipeCategoryLabels) as RecipeCategory[]).map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => set('category', c)}
-                      className={cn(
-                        'rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
-                        d.category === c
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'hover:bg-secondary',
-                      )}
-                    >
-                      {recipeCategoryLabels[c]}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {extra && (
+                <p className="rounded-lg bg-accent/60 px-3 py-2 text-xs text-accent-foreground">
+                  Adicionais vão junto com uma marmita: entram impostos e taxas do canal, mas não o rateio de
+                  custos fixos nem a entrega.
+                </p>
+              )}
 
-              <div className="grid grid-cols-[auto_1fr] items-start gap-4">
+              {!extra && (
                 <div className="grid gap-1.5">
-                  <Label>Tamanho</Label>
-                  <div className="inline-flex rounded-lg border p-0.5">
-                    {(['P', 'M', 'G'] as RecipeSize[]).map((s) => (
+                  <Label>Categoria</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {(Object.keys(recipeCategoryLabels) as RecipeCategory[]).map((c) => (
                       <button
-                        key={s}
+                        key={c}
                         type="button"
-                        title={SIZE_HINT[s]}
-                        onClick={() => set('size', s)}
+                        onClick={() => set('category', c)}
                         className={cn(
-                          'h-8 w-11 rounded-md text-sm font-semibold transition-colors',
-                          d.size === s ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary',
+                          'rounded-full border px-3 py-1.5 text-sm font-medium transition-colors',
+                          d.category === c
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'hover:bg-secondary',
                         )}
                       >
-                        {s}
+                        {recipeCategoryLabels[c]}
                       </button>
                     ))}
                   </div>
                 </div>
+              )}
+
+              <div className={cn('grid items-start gap-4', !extra && 'grid-cols-[auto_1fr]')}>
+                {!extra && (
+                  <div className="grid gap-1.5">
+                    <Label>Tamanho</Label>
+                    <div className="inline-flex rounded-lg border p-0.5">
+                      {(['P', 'M', 'G'] as RecipeSize[]).map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          title={SIZE_HINT[s]}
+                          onClick={() => set('size', s)}
+                          className={cn(
+                            'h-8 w-11 rounded-md text-sm font-semibold transition-colors',
+                            d.size === s ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary',
+                          )}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <NumberField
-                  label="Peso planejado"
+                  label={extra ? 'Peso ou volume (opcional)' : 'Peso planejado'}
                   suffix="g"
                   value={d.targetWeight}
                   onValueChange={(v) => set('targetWeight', v ?? 0)}
@@ -379,7 +434,10 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
                   const line = cost.items[idx]
                   const base = ing ? baseUnitOf(ing.unit) : 'g'
                   return (
-                    <li key={it.ingredientId} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 p-3 sm:grid-cols-[1fr_110px_90px_auto]">
+                    <li
+                      key={it.ingredientId}
+                      className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 p-3 sm:grid-cols-[1fr_110px_90px_auto]"
+                    >
                       <div className="min-w-0">
                         <p className={cn('truncate text-sm font-medium', !ing && 'text-destructive')}>
                           {line?.name}
@@ -399,7 +457,12 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
                         size="icon"
                         className="size-8 text-muted-foreground hover:text-destructive sm:order-last"
                         aria-label={`Remover ${line?.name}`}
-                        onClick={() => set('items', d.items.filter((_, i) => i !== idx))}
+                        onClick={() =>
+                          set(
+                            'items',
+                            d.items.filter((_, i) => i !== idx),
+                          )
+                        }
                       >
                         <Trash2 />
                       </Button>
@@ -418,7 +481,9 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
                           )
                         }
                       />
-                      <p className="text-right text-sm font-semibold tabular-nums">{formatBRL(line?.cost ?? 0)}</p>
+                      <p className="text-right text-sm font-semibold tabular-nums">
+                        {formatBRL(line?.cost ?? 0)}
+                      </p>
                     </li>
                   )
                 })}
@@ -459,9 +524,14 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
                   const p = packMap.get(pk.packagingId)
                   const line = cost.packagingItems[idx]
                   return (
-                    <li key={pk.packagingId} className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 p-3 sm:grid-cols-[1fr_110px_90px_auto]">
+                    <li
+                      key={pk.packagingId}
+                      className="grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2 p-3 sm:grid-cols-[1fr_110px_90px_auto]"
+                    >
                       <div className="min-w-0">
-                        <p className={cn('truncate text-sm font-medium', !p && 'text-destructive')}>{line?.name}</p>
+                        <p className={cn('truncate text-sm font-medium', !p && 'text-destructive')}>
+                          {line?.name}
+                        </p>
                         {p && (
                           <p className="text-xs text-muted-foreground tabular-nums">
                             {formatBRLUnit(packagingUnitCost(p))} cada
@@ -474,7 +544,12 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
                         size="icon"
                         className="size-8 text-muted-foreground hover:text-destructive sm:order-last"
                         aria-label={`Remover ${line?.name}`}
-                        onClick={() => set('packaging', d.packaging.filter((_, i) => i !== idx))}
+                        onClick={() =>
+                          set(
+                            'packaging',
+                            d.packaging.filter((_, i) => i !== idx),
+                          )
+                        }
                       >
                         <Trash2 />
                       </Button>
@@ -493,7 +568,9 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
                           )
                         }
                       />
-                      <p className="text-right text-sm font-semibold tabular-nums">{formatBRL(line?.cost ?? 0)}</p>
+                      <p className="text-right text-sm font-semibold tabular-nums">
+                        {formatBRL(line?.cost ?? 0)}
+                      </p>
                     </li>
                   )
                 })}
@@ -527,9 +604,9 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
 
           <div className="hidden justify-end gap-2 lg:flex">
             <Button variant="outline" asChild>
-              <Link to="/fichas">Cancelar</Link>
+              <Link to={backPath}>Cancelar</Link>
             </Button>
-            <Button onClick={save}>Salvar ficha</Button>
+            <Button onClick={save}>Salvar</Button>
           </div>
         </div>
 
@@ -540,10 +617,14 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
       <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 border-t bg-background/95 px-4 py-2.5 backdrop-blur md:bottom-0 md:left-64 lg:hidden">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] text-muted-foreground">Custo direto · {formatNumber(cost.totalWeight, 0)} g</p>
-            <p className="text-lg leading-tight font-bold text-primary tabular-nums">{formatBRL(cost.directCost)}</p>
+            <p className="text-[11px] text-muted-foreground">
+              Custo direto · {formatNumber(cost.totalWeight, 0)} g
+            </p>
+            <p className="text-lg leading-tight font-bold text-primary tabular-nums">
+              {formatBRL(cost.directCost)}
+            </p>
           </div>
-          <Button onClick={save}>Salvar ficha</Button>
+          <Button onClick={save}>Salvar</Button>
         </div>
       </div>
 
@@ -560,12 +641,12 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
           title={`Excluir "${recipe.name}"?`}
-          description="A ficha técnica será apagada. Essa ação não pode ser desfeita."
+          description={`${extra ? 'O adicional será apagado' : 'A ficha técnica será apagada'}. Essa ação não pode ser desfeita.`}
           confirmLabel="Excluir"
           onConfirm={() => {
             saving.current = true
             deleteRecipe(recipe.id)
-            navigate('/fichas')
+            navigate(backPath)
           }}
         />
       )}

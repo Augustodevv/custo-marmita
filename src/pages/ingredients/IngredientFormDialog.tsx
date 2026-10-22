@@ -238,7 +238,7 @@ function IngredientForm({ ingredient, onDone }: { ingredient?: Ingredient; onDon
         />
         {base === 'un' && (
           <NumberField
-          showErrors={submitted}
+            showErrors={submitted}
             label="Peso de 1 unidade (opcional)"
             suffix="g"
             value={d.unitWeight}

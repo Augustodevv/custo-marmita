@@ -43,9 +43,7 @@ export function costPerBaseUnit(
 }
 
 /** Custo por unidade-base SEM considerar a perda (preço de compra bruto). */
-export function rawCostPerBaseUnit(
-  ing: Pick<Ingredient, 'packagePrice' | 'packageQty' | 'unit'>,
-): number {
+export function rawCostPerBaseUnit(ing: Pick<Ingredient, 'packagePrice' | 'packageQty' | 'unit'>): number {
   return safeDiv(nonNeg(ing.packagePrice), toBaseQty(ing.packageQty, ing.unit))
 }
 

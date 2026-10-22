@@ -33,8 +33,8 @@ export function FeesTab() {
           <CardHeader>
             <CardTitle>Imposto sobre a venda</CardTitle>
             <CardDescription>
-              Simples Nacional costuma ficar entre 4% e 6% da venda. MEI paga o DAS fixo: deixe 0% aqui e lance o
-              DAS nos custos fixos.
+              Simples Nacional costuma ficar entre 4% e 6% da venda. MEI paga o DAS fixo: deixe 0% aqui e
+              lance o DAS nos custos fixos.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -77,8 +77,8 @@ export function FeesTab() {
               <Truck className="size-4" /> Entrega própria
             </CardTitle>
             <CardDescription>
-              Custo médio por marmita quando você mesmo entrega (combustível, motoboy). Entra só nos canais marcados
-              com "Eu entrego".
+              Custo médio por marmita quando você mesmo entrega (combustível, motoboy). Entra só nos canais
+              marcados com "Eu entrego".
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -130,14 +130,17 @@ export function FeesTab() {
             <Store className="size-4" /> Canais de venda
           </CardTitle>
           <CardDescription>
-            Cada canal tem a sua comissão e forma de pagamento. iFood: plano básico ≈ 12% e plano entrega ≈ 23%,
-            mais ≈ 3,2% do pagamento online. Confira o seu contrato.
+            Cada canal tem a sua comissão e forma de pagamento. iFood: plano básico ≈ 12% e plano entrega ≈
+            23%, mais ≈ 3,2% do pagamento online. Confira o seu contrato.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3">
           <div className="grid gap-1.5">
             <Label>Canal principal</Label>
-            <Select value={pricing.primaryChannelId} onValueChange={(v) => setPricing({ primaryChannelId: v })}>
+            <Select
+              value={pricing.primaryChannelId}
+              onValueChange={(v) => setPricing({ primaryChannelId: v })}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -217,7 +220,9 @@ export function FeesTab() {
                 </label>
                 <span className="text-sm text-muted-foreground">
                   Total de taxas:{' '}
-                  <strong className="text-foreground tabular-nums">{formatPercent(channelFeePercent(fees, c))}</strong>
+                  <strong className="text-foreground tabular-nums">
+                    {formatPercent(channelFeePercent(fees, c))}
+                  </strong>
                 </span>
               </div>
             </div>

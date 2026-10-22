@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { CostSettings, FeeSettings, SalesChannel } from '../types'
 import { calcFixedCosts, laborMonthly, totalMonthlyFixed } from './fixed'
-import {
-  analyzePrice,
-  channelFeePercent,
-  priceForProfit,
-  suggestedPrice,
-  unitCost,
-} from './pricing'
+import { analyzePrice, channelFeePercent, priceForProfit, suggestedPrice, unitCost } from './pricing'
 
 const costs: CostSettings = {
   fixedCosts: [
@@ -29,7 +23,13 @@ const fees: FeeSettings = {
   channels: [],
 }
 
-const whatsapp: SalesChannel = { id: 'w', name: 'WhatsApp', feePercent: 0, payment: 'credito', ownDelivery: true }
+const whatsapp: SalesChannel = {
+  id: 'w',
+  name: 'WhatsApp',
+  feePercent: 0,
+  payment: 'credito',
+  ownDelivery: true,
+}
 const ifood: SalesChannel = { id: 'i', name: 'iFood', feePercent: 27, payment: 'app', ownDelivery: false }
 
 describe('custos fixos e rateio', () => {

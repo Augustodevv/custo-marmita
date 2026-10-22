@@ -35,9 +35,7 @@ export function unitCost(
   return { ingredients, packaging, fixed, delivery, total: ingredients + packaging + fixed + delivery }
 }
 
-export type SuggestedPrice =
-  | { ok: true; price: number; markup: number }
-  | { ok: false; reason: string }
+export type SuggestedPrice = { ok: true; price: number; markup: number } | { ok: false; reason: string }
 
 /**
  * Markup: Preço = Custo ÷ (1 − (% impostos + % taxas + % margem)).

@@ -32,8 +32,7 @@ export function PackagingPage() {
   const [editing, setEditing] = useState<Packaging | undefined>()
   const [deleting, setDeleting] = useState<Packaging | undefined>()
 
-  const usage = (id: string) =>
-    recipes.filter((r) => r.packaging.some((p) => p.packagingId === id)).length
+  const usage = (id: string) => recipes.filter((r) => r.packaging.some((p) => p.packagingId === id)).length
 
   const order = Object.keys(packagingTypeLabels)
   const sorted = [...packaging].sort(
@@ -115,7 +114,11 @@ export function PackagingPage() {
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent>
           {formOpen && (
-            <PackagingForm key={editing?.id ?? 'nova'} packaging={editing} onDone={() => setFormOpen(false)} />
+            <PackagingForm
+              key={editing?.id ?? 'nova'}
+              packaging={editing}
+              onDone={() => setFormOpen(false)}
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -218,9 +221,7 @@ function PackagingForm({ packaging, onDone }: { packaging?: Packaging; onDone: (
       </div>
       <div className="rounded-xl bg-primary/10 p-4">
         <p className="text-xs font-medium text-muted-foreground uppercase">Custo por unidade</p>
-        <p className="mt-1 text-2xl font-bold text-primary tabular-nums">
-          {formatBRLUnit(unitCost)}
-        </p>
+        <p className="mt-1 text-2xl font-bold text-primary tabular-nums">{formatBRLUnit(unitCost)}</p>
       </div>
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onDone}>
