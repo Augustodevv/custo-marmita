@@ -28,7 +28,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { usePricingContext } from '../pricing/usePricingContext'
 import { RecipeThumb } from '../recipes/RecipeThumb'
 import { CompositionChart, MarginChart } from './DashboardCharts'
-import { StockAlertCard } from './StockAlertCard'
+import { SoldOutAlertCard, StockAlertCard } from './StockAlertCard'
 
 function StatCard({
   icon: Icon,
@@ -77,6 +77,7 @@ export function DashboardPage() {
     return (
       <>
         <PageHeader title="Dashboard" />
+        <SoldOutAlertCard />
         <StockAlertCard />
         <EmptyState
           icon={ClipboardList}
@@ -111,6 +112,7 @@ export function DashboardPage() {
         }
       />
 
+      <SoldOutAlertCard />
       <StockAlertCard />
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4 [&>*]:min-w-0">

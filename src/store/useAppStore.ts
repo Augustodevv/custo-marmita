@@ -10,6 +10,7 @@ import type {
   CostSettings,
   FeeSettings,
   Ingredient,
+  Kit,
   Packaging,
   PricingSettings,
   ProductionPlan,
@@ -21,6 +22,7 @@ import {
   sampleIngredients,
   sampleLabor,
   samplePackaging,
+  sampleKits,
   sampleRecipes,
 } from './sample-data'
 
@@ -28,6 +30,12 @@ export type ThemePref = 'light' | 'dark' | 'system'
 
 export interface Settings {
   theme: ThemePref
+  /** Nome do negócio (cardápio do dia e PDFs) */
+  businessName: string
+  whatsapp: string
+  instagram: string
+  /** Avisar "últimas unidades" quando restarem até N marmitas prontas */
+  readyAlert: number
 }
 
 export interface AppData {
@@ -39,6 +47,7 @@ export interface AppData {
   pricing: PricingSettings
   /** Plano de produção da lista de compras (id da ficha → quantidade) */
   plan: ProductionPlan
+  kits: Kit[]
   settings: Settings
 }
 
@@ -66,8 +75,15 @@ interface Actions {
   setPlanQty: (recipeId: string, qty: number) => void
   setPlan: (plan: ProductionPlan) => void
   applyStock: (changes: StockChange[]) => void
+  /** Soma (ou subtrai) marmitas prontas; nunca fica negativo */
+  adjustReady: (changes: Record<string, number>) => void
+
+  addKit: (k: Omit<Kit, 'id'>) => string
+  updateKit: (id: string, patch: Partial<Kit>) => void
+  deleteKit: (id: string) => void
 
   setTheme: (t: ThemePref) => void
+  setSettings: (patch: Partial<Settings>) => void
   clearSampleData: () => void
   loadSampleData: () => void
   replaceAll: (data: AppData) => void
@@ -75,7 +91,13 @@ interface Actions {
 
 export type AppState = AppData & Actions
 
-export const defaultSettings: Settings = { theme: 'system' }
+export const defaultSettings: Settings = {
+  theme: 'system',
+  businessName: 'Marmifit Camburi',
+  whatsapp: '(12) 99647-8899',
+  instagram: '@marmifitcamburi',
+  readyAlert: 3,
+}
 
 export const defaultCosts: CostSettings = {
   fixedCosts: sampleFixedCosts,
@@ -109,6 +131,7 @@ export const initialData: AppData = {
   fees: defaultFees,
   pricing: defaultPricing,
   plan: { 's-r-frango': 15, 's-r-carne-pure': 10, 's-r-strogonoff': 10, 's-r-kids': 5 },
+  kits: sampleKits,
   settings: defaultSettings,
 }
 
@@ -119,7 +142,7 @@ const without = <T extends { sample?: boolean }>(list: T[]) => list.filter((x) =
  * do próprio usuário são mantidos (e passam a ser dele), para não quebrar essas fichas.
  */
 export function removeSampleData(
-  s: Pick<AppData, 'ingredients' | 'packaging' | 'recipes' | 'costs' | 'plan'>,
+  s: Pick<AppData, 'ingredients' | 'packaging' | 'recipes' | 'costs' | 'plan' | 'kits'>,
 ) {
   const recipes = without(s.recipes)
   const usedIng = new Set(recipes.flatMap((r) => r.items.map((i) => i.ingredientId)))
@@ -132,6 +155,9 @@ export function removeSampleData(
     recipes,
     costs: { ...s.costs, fixedCosts: without(s.costs.fixedCosts), labor: without(s.costs.labor) },
     plan: Object.fromEntries(Object.entries(s.plan).filter(([id]) => recipes.some((r) => r.id === id))),
+    kits: without(s.kits)
+      .map((k) => ({ ...k, items: k.items.filter((it) => recipes.some((r) => r.id === it.recipeId)) }))
+      .filter((k) => k.items.length > 0),
   }
 }
 
@@ -195,7 +221,11 @@ export const useAppStore = create<AppState>()(
         set((s) => {
           const plan = { ...s.plan }
           delete plan[id]
-          return { recipes: s.recipes.filter((r) => r.id !== id), plan }
+          return {
+            recipes: s.recipes.filter((r) => r.id !== id),
+            plan,
+            kits: s.kits.map((k) => ({ ...k, items: k.items.filter((it) => it.recipeId !== id) })),
+          }
         }),
       duplicateRecipe: (id) => {
         const original = get().recipes.find((r) => r.id === id)
@@ -235,6 +265,25 @@ export const useAppStore = create<AppState>()(
         return { created: plan.recipes.length, skipped: plan.skipped }
       },
 
+      adjustReady: (changes) =>
+        set((s) => ({
+          recipes: s.recipes.map((r) =>
+            changes[r.id] === undefined
+              ? r
+              : { ...r, readyStock: Math.max(0, (r.readyStock ?? 0) + changes[r.id]) },
+          ),
+        })),
+
+      addKit: (k) => {
+        const id = newId()
+        set((s) => ({ kits: [...s.kits, { ...k, id }] }))
+        return id
+      },
+      updateKit: (id, patch) =>
+        set((s) => ({ kits: s.kits.map((k) => (k.id === id ? { ...k, ...patch, sample: false } : k)) })),
+      deleteKit: (id) => set((s) => ({ kits: s.kits.filter((k) => k.id !== id) })),
+
+      setSettings: (patch) => set((s) => ({ settings: { ...s.settings, ...patch } })),
       setTheme: (theme) => set((s) => ({ settings: { ...s.settings, theme } })),
 
       clearSampleData: () => set((s) => removeSampleData(s)),
@@ -243,6 +292,7 @@ export const useAppStore = create<AppState>()(
           ingredients: [...without(s.ingredients), ...sampleIngredients],
           packaging: [...without(s.packaging), ...samplePackaging],
           recipes: [...without(s.recipes), ...sampleRecipes],
+          kits: [...without(s.kits), ...sampleKits],
           costs: {
             ...s.costs,
             fixedCosts: [...without(s.costs.fixedCosts), ...sampleFixedCosts],
@@ -253,7 +303,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'custo-marmita',
-      version: 3,
+      version: 4,
       // Versões antigas: blocos novos (custos, taxas, plano…) recebem os padrões no `merge`
       migrate: (persisted) => persisted as AppData,
       storage: createJSONStorage(() => localStorage),
@@ -265,6 +315,7 @@ export const useAppStore = create<AppState>()(
         fees: s.fees,
         pricing: s.pricing,
         plan: s.plan,
+        kits: s.kits,
         settings: s.settings,
       }),
       // Garante que campos novos (de versões futuras) recebam valores padrão

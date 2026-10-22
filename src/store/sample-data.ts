@@ -1,4 +1,4 @@
-import type { FixedCost, Ingredient, LaborEntry, Packaging, Recipe } from '@/lib/types'
+import type { FixedCost, Ingredient, Kit, LaborEntry, Packaging, Recipe } from '@/lib/types'
 
 // Dados de exemplo com preços típicos de atacarejo (out/2026), só para demonstração.
 const D = '2026-10-15'
@@ -363,6 +363,7 @@ export const sampleRecipes: Recipe[] = [
     packaging: STD_PACK,
     currentPrice: 25,
     desiredMargin: 20,
+    readyStock: 12,
   }),
   rec({
     id: 's-r-carne-pure',
@@ -383,6 +384,7 @@ export const sampleRecipes: Recipe[] = [
     packaging: STD_PACK,
     currentPrice: 24,
     desiredMargin: 20,
+    readyStock: 0,
   }),
   rec({
     id: 's-r-strogonoff',
@@ -402,6 +404,7 @@ export const sampleRecipes: Recipe[] = [
     packaging: STD_PACK,
     currentPrice: 24,
     desiredMargin: 20,
+    readyStock: 2,
   }),
   rec({
     id: 's-r-tilapia',
@@ -420,6 +423,7 @@ export const sampleRecipes: Recipe[] = [
     packaging: STD_PACK,
     currentPrice: 22,
     desiredMargin: 20,
+    readyStock: 6,
   }),
   rec({
     id: 's-r-grao',
@@ -439,6 +443,7 @@ export const sampleRecipes: Recipe[] = [
     packaging: STD_PACK,
     currentPrice: 19,
     desiredMargin: 20,
+    readyStock: 4,
   }),
   rec({
     id: 's-r-kids',
@@ -460,6 +465,7 @@ export const sampleRecipes: Recipe[] = [
     ],
     currentPrice: 15,
     desiredMargin: 20,
+    readyStock: 0,
   }),
   rec({
     id: 's-x-frango',
@@ -552,6 +558,34 @@ export const sampleLabor: LaborEntry[] = [
     monthly: 0,
     hourlyRate: 12,
     hours: 80,
+    sample: true,
+  },
+]
+
+export const sampleKits: Kit[] = [
+  {
+    id: 's-kit-semana-fit',
+    name: 'Kit semana fit (5 marmitas)',
+    items: [
+      { recipeId: 's-r-frango', qty: 2 },
+      { recipeId: 's-r-strogonoff', qty: 2 },
+      { recipeId: 's-r-grao', qty: 1 },
+    ],
+    discountPercent: 5,
+    minMargin: 15,
+    sample: true,
+  },
+  {
+    id: 's-kit-10',
+    name: 'Kit 10 marmitas variadas',
+    items: [
+      { recipeId: 's-r-frango', qty: 3 },
+      { recipeId: 's-r-carne-pure', qty: 3 },
+      { recipeId: 's-r-strogonoff', qty: 2 },
+      { recipeId: 's-r-tilapia', qty: 2 },
+    ],
+    discountPercent: 10,
+    minMargin: 15,
     sample: true,
   },
 ]

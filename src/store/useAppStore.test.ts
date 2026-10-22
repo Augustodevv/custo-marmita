@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { sampleIngredients, samplePackaging, sampleRecipes } from './sample-data'
+import { sampleIngredients, sampleKits, samplePackaging, sampleRecipes } from './sample-data'
 import { defaultCosts, removeSampleData } from './useAppStore'
 
 describe('limpar dados de exemplo', () => {
@@ -10,6 +10,7 @@ describe('limpar dados de exemplo', () => {
       recipes: sampleRecipes,
       costs: defaultCosts,
       plan: { minha: 5, 's-r-frango': 10 },
+      kits: sampleKits,
     })
     expect(r.ingredients).toHaveLength(0)
     expect(r.packaging).toHaveLength(0)
@@ -33,11 +34,13 @@ describe('limpar dados de exemplo', () => {
       recipes: [...sampleRecipes, mine],
       costs: defaultCosts,
       plan: { minha: 5, 's-r-frango': 10 },
+      kits: sampleKits,
     })
     expect(r.recipes.map((x) => x.id)).toEqual(['minha'])
     expect(r.ingredients.map((x) => x.id)).toEqual(['s-frango'])
     expect(r.ingredients[0].sample).toBe(false)
     expect(r.packaging.map((x) => x.id)).toEqual(['s-pote-750'])
     expect(r.plan).toEqual({ minha: 5 })
+    expect(r.kits).toHaveLength(0)
   })
 })

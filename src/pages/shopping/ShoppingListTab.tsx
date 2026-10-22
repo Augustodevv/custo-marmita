@@ -71,6 +71,7 @@ export function ShoppingListTab() {
   const setPlanQty = useAppStore((s) => s.setPlanQty)
   const setPlan = useAppStore((s) => s.setPlan)
   const applyStock = useAppStore((s) => s.applyStock)
+  const adjustReady = useAppStore((s) => s.adjustReady)
   const [useStock, setUseStock] = useState(true)
   const [confirm, setConfirm] = useState<'compra' | 'producao' | null>(null)
 
@@ -276,10 +277,11 @@ export function ShoppingListTab() {
         onOpenChange={(o) => !o && setConfirm(null)}
         destructive={false}
         title={`Registrar a produção de ${formatNumber(list.totalMeals, 0)} itens?`}
-        description="Tira do estoque os ingredientes (com a perda) e as embalagens usados. O plano de produção é zerado."
+        description="Tira do estoque os ingredientes (com a perda) e as embalagens usados, soma as marmitas às prontas para venda e zera o plano de produção."
         confirmLabel="Registrar produção"
         onConfirm={() => {
           applyStock(productionChanges(plan, recipes, ingredients))
+          adjustReady(plan)
           setPlan({})
           toast.success('Produção registrada. Estoque atualizado.')
         }}

@@ -1,10 +1,36 @@
-import { ArrowRight, PackageX } from 'lucide-react'
+import { ArrowRight, PackageX, XCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { soldOut } from '@/lib/calc/menu'
 import { stockAlerts } from '@/lib/calc/stock'
 import { useAppStore } from '@/store/useAppStore'
 
 /** Aviso de itens zerados ou abaixo do estoque mínimo. Some quando está tudo em dia. */
+export function SoldOutAlertCard() {
+  const recipes = useAppStore((s) => s.recipes)
+  const out = soldOut(recipes)
+  if (out.length === 0) return null
+  return (
+    <div
+      role="alert"
+      className="mb-4 flex flex-col gap-3 rounded-xl border border-red-500/40 bg-red-500/10 p-4 sm:flex-row sm:items-center"
+    >
+      <XCircle className="size-6 shrink-0 text-red-600 dark:text-red-400" />
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">
+          {out.length} marmita{out.length > 1 ? 's' : ''} esgotada{out.length > 1 ? 's' : ''}
+        </p>
+        <p className="truncate text-sm text-muted-foreground">{out.map((r) => r.name).join(', ')}</p>
+      </div>
+      <Button size="sm" variant="outline" asChild className="shrink-0">
+        <Link to="/compras?aba=prontas">
+          Ver prontas <ArrowRight />
+        </Link>
+      </Button>
+    </div>
+  )
+}
+
 export function StockAlertCard() {
   const ingredients = useAppStore((s) => s.ingredients)
   const packaging = useAppStore((s) => s.packaging)

@@ -2,10 +2,11 @@ import { createHashRouter, RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { ComingSoonPage } from '@/pages/ComingSoonPage'
 import { CostsPage } from '@/pages/costs/CostsPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { IngredientsPage } from '@/pages/ingredients/IngredientsPage'
+import { KitsPage } from '@/pages/kits/KitsPage'
+import { NotFoundPage } from '@/pages/NotFoundPage'
 import { PackagingPage } from '@/pages/packaging/PackagingPage'
 import { PricingPage } from '@/pages/pricing/PricingPage'
 import { RecipeEditorPage } from '@/pages/recipes/RecipeEditorPage'
@@ -27,10 +28,10 @@ const router = createHashRouter([
       { path: 'fichas/:id', element: <RecipeEditorPage /> },
       { path: 'custos', element: <CostsPage /> },
       { path: 'precificacao', element: <PricingPage /> },
-      { path: 'kits', element: <ComingSoonPage title="Kits e combos" stage={3} /> },
+      { path: 'kits', element: <KitsPage /> },
       { path: 'compras', element: <ShoppingPage /> },
       { path: 'configuracoes', element: <SettingsPage /> },
-      { path: '*', element: <ComingSoonPage title="Página não encontrada" stage={1} /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ])

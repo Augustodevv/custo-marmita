@@ -108,6 +108,12 @@ export interface Recipe {
   /** Margem de lucro desejada (%) — se ausente usa a padrão das configurações */
   desiredMargin?: number
   notes?: string
+  /** Marmitas prontas disponíveis para venda (estoque de prontas) */
+  readyStock?: number
+  /** Avisar "últimas unidades" quando restar até esta quantidade */
+  readyAlert?: number
+  /** Oculta do cardápio do dia (prato fora de linha temporariamente) */
+  hidden?: boolean
   createdAt: string
   sample?: boolean
 }
@@ -203,3 +209,21 @@ export interface StockChange {
 
 /** Plano de produção: id da ficha → quantidade a produzir */
 export type ProductionPlan = Record<string, number>
+
+// ---------- Kits e combos ----------
+
+export interface KitItem {
+  recipeId: string
+  qty: number
+}
+
+export interface Kit {
+  id: string
+  name: string
+  items: KitItem[]
+  /** Desconto sobre a soma dos preços (%) */
+  discountPercent: number
+  /** Margem mínima aceitável para o kit (%) — usada para sugerir o desconto máximo */
+  minMargin: number
+  sample?: boolean
+}
