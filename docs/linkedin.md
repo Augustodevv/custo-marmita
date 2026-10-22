@@ -24,9 +24,9 @@ Para resolver isso, desenvolvi o **Custo Marmita**, um app web para quem vende m
 
 O projeto nasceu de um problema real: usei o cardápio da **Marmifit Camburi** como base. Os pratos, os tamanhos (350 g e 500 g) e os preços já vêm prontos no catálogo do app.
 
-🛠️ **Stack:** React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, Zustand, Recharts, jsPDF e Vitest (84 testes cobrindo toda a lógica de cálculo, que fica em funções puras separadas da interface). Deploy contínuo com GitHub Actions.
+🛠️ **Stack:** React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, Zustand, Recharts, jsPDF e Vitest (84 testes cobrindo toda a lógica de cálculo, que fica em funções puras separadas da interface). Deploy contínuo na Vercel.
 
-🔗 App: https://augustodevv.github.io/custo-marmita/
+🔗 App: https://custo-marmita.vercel.app/
 💻 Código: https://github.com/Augustodevv/custo-marmita
 
 Se você vende comida ou conhece alguém que vende, testa e me conta o que achou! 👇

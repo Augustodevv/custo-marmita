@@ -6,7 +6,7 @@
 
 Feita para usar no celular, na cozinha.
 
-[**▶ Abrir o app**](https://augustodevv.github.io/custo-marmita/)
+[**▶ Abrir o app**](https://custo-marmita.vercel.app/)
 
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
@@ -82,7 +82,7 @@ As divisões são protegidas contra zero (quantidade ou produção zerada) e o a
 - **Recharts** para os gráficos, com paleta validada para daltonismo nos modos claro e escuro
 - **jsPDF + AutoTable** para os PDFs, carregados só quando usados
 - **Vitest**: 84 testes cobrindo cálculos, estoque, lista de compras, kits, cardápio e backup
-- Deploy contínuo no **GitHub Pages** (GitHub Actions) e pronto para a **Vercel**
+- Deploy contínuo na **Vercel** e no **GitHub Pages** (GitHub Actions)
 
 ## Como rodar localmente
 
@@ -121,8 +121,8 @@ src/
 
 ## Deploy
 
-- **GitHub Pages:** cada push na `main` roda os testes e publica pelo workflow [`deploy.yml`](.github/workflows/deploy.yml).
-- **Vercel:** importe o repositório em [vercel.com/new](https://vercel.com/new). O [`vercel.json`](vercel.json) já traz a configuração (Vite, `dist/`).
+- **Vercel (principal):** [custo-marmita.vercel.app](https://custo-marmita.vercel.app/), publicado a cada push na `main`. A configuração está em [`vercel.json`](vercel.json).
+- **GitHub Pages (espelho):** [augustodevv.github.io/custo-marmita](https://augustodevv.github.io/custo-marmita/), publicado pelo workflow [`deploy.yml`](.github/workflows/deploy.yml), que também roda os testes.
 
 ## Próximos passos
 
