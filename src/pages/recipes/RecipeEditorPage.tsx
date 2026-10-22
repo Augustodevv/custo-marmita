@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { priceRecipe } from '@/lib/calc/analysis'
 import { calcRecipeCost } from '@/lib/calc/recipe'
 import { costPerBaseUnit, packagingUnitCost } from '@/lib/calc/units'
 import { formatBRL, formatBRLUnit, formatNumber, formatPercent } from '@/lib/format'
@@ -25,6 +26,7 @@ import { baseUnitOf } from '@/lib/calc/units'
 import type { Recipe, RecipeCategory, RecipeSize } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
+import { usePricingContext } from '../pricing/usePricingContext'
 import { RecipeThumb } from './RecipeThumb'
 
 type Draft = Omit<Recipe, 'id' | 'createdAt'>
@@ -97,6 +99,8 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((p) => ({ ...p, [k]: v }))
   const cost = calcRecipeCost(d, ingredients, packagingList)
+  const ctx = usePricingContext()
+  const pricing = priceRecipe({ ...d, id: recipe?.id ?? 'rascunho', createdAt: '' }, ctx)
   const ingMap = useMemo(() => new Map(ingredients.map((i) => [i.id, i])), [ingredients])
   const packMap = useMemo(() => new Map(packagingList.map((p) => [p.id, p])), [packagingList])
 
@@ -201,9 +205,20 @@ function RecipeEditor({ recipe }: { recipe?: Recipe }) {
               })}
           </div>
         )}
-        <p className="border-t pt-3 text-xs text-muted-foreground">
-          Custos fixos, taxas e preço sugerido aparecem em <strong>Precificação</strong>.
-        </p>
+        <div className="grid gap-2 border-t pt-3">
+          <Row label="Custo total (com fixos e entrega)" value={formatBRL(pricing.cost.total)} />
+          <Row
+            label={`Preço sugerido (${formatPercent(pricing.desiredMargin, 0)} de margem)`}
+            value={<span className="text-primary">{pricing.suggested.ok ? formatBRL(pricing.suggested.price) : '—'}</span>}
+          />
+          <p className="text-xs text-muted-foreground">
+            Detalhes, preço praticado e canais em{' '}
+            <Link to="/precificacao" className="font-medium text-primary underline-offset-2 hover:underline">
+              Precificação
+            </Link>
+            .
+          </p>
+        </div>
       </CardContent>
     </Card>
   )

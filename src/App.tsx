@@ -3,8 +3,10 @@ import { Toaster } from 'sonner'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { ComingSoonPage } from '@/pages/ComingSoonPage'
+import { CostsPage } from '@/pages/costs/CostsPage'
 import { IngredientsPage } from '@/pages/ingredients/IngredientsPage'
 import { PackagingPage } from '@/pages/packaging/PackagingPage'
+import { PricingPage } from '@/pages/pricing/PricingPage'
 import { RecipeEditorPage } from '@/pages/recipes/RecipeEditorPage'
 import { RecipesPage } from '@/pages/recipes/RecipesPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
@@ -21,8 +23,8 @@ const router = createHashRouter([
       { path: 'embalagens', element: <PackagingPage /> },
       { path: 'fichas', element: <RecipesPage /> },
       { path: 'fichas/:id', element: <RecipeEditorPage /> },
-      { path: 'custos', element: <ComingSoonPage title="Custos fixos" stage={2} /> },
-      { path: 'precificacao', element: <ComingSoonPage title="Precificação" stage={2} /> },
+      { path: 'custos', element: <CostsPage /> },
+      { path: 'precificacao', element: <PricingPage /> },
       { path: 'kits', element: <ComingSoonPage title="Kits e combos" stage={3} /> },
       { path: 'compras', element: <ComingSoonPage title="Lista de compras" stage={3} /> },
       { path: 'configuracoes', element: <SettingsPage /> },

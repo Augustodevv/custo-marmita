@@ -91,3 +91,81 @@ export interface Recipe {
   createdAt: string
   sample?: boolean
 }
+
+// ---------- Custos fixos e operacionais (mensais) ----------
+
+export interface FixedCost {
+  id: string
+  name: string
+  /** Valor mensal em R$ */
+  amount: number
+  sample?: boolean
+}
+
+export type LaborMode = 'mensal' | 'hora'
+
+export interface LaborEntry {
+  id: string
+  /** Ex.: "Pró-labore", "Ajudante de cozinha" */
+  name: string
+  mode: LaborMode
+  /** Salário ou pró-labore mensal (modo "mensal") */
+  monthly: number
+  /** Valor da hora (modo "hora") */
+  hourlyRate: number
+  /** Horas trabalhadas no mês (modo "hora") */
+  hours: number
+  sample?: boolean
+}
+
+export interface GasConfig {
+  /** "mensal": valor fixo no mês · "botijao": preço do botijão ÷ marmitas que ele rende */
+  mode: 'mensal' | 'botijao'
+  monthly: number
+  cylinderPrice: number
+  mealsPerCylinder: number
+}
+
+export interface CostSettings {
+  fixedCosts: FixedCost[]
+  labor: LaborEntry[]
+  gas: GasConfig
+  /** Produção mensal estimada (marmitas/mês) */
+  monthlyProduction: number
+}
+
+// ---------- Taxas, impostos e canais de venda ----------
+
+export type PaymentMethod = 'pix' | 'debito' | 'credito' | 'dinheiro'
+
+/** "app": o próprio aplicativo cobra o cliente; a taxa do canal já inclui o pagamento */
+export type ChannelPayment = PaymentMethod | 'app'
+
+export interface SalesChannel {
+  id: string
+  name: string
+  /** Comissão do canal (ex.: iFood) em % */
+  feePercent: number
+  /** Forma de pagamento mais comum nesse canal */
+  payment: ChannelPayment
+  /** Você mesmo entrega? Se sim, o custo de entrega entra no custo da marmita */
+  ownDelivery: boolean
+}
+
+export interface FeeSettings {
+  /** Imposto sobre a venda em % (ex.: Simples Nacional). MEI costuma deixar 0 e lançar o DAS nos custos fixos */
+  salesTaxPercent: number
+  cardFees: Record<PaymentMethod, number>
+  /** Custo de entrega por marmita quando você mesmo entrega */
+  deliveryCostPerMeal: number
+  channels: SalesChannel[]
+}
+
+export interface PricingSettings {
+  /** Margem de lucro desejada padrão (%) */
+  defaultMargin: number
+  /** Abaixo desta margem a marmita recebe alerta (%) */
+  minMarginAlert: number
+  /** Canal em que o "preço praticado" das fichas é cobrado */
+  primaryChannelId: string
+}

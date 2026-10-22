@@ -1,5 +1,6 @@
 import type {
   BaseUnit,
+  ChannelPayment,
   IngredientCategory,
   PackagingType,
   RecipeCategory,
@@ -71,4 +72,12 @@ export function perDisplayUnit(costPerBase: number, base: BaseUnit): { value: nu
   if (base === 'g') return { value: costPerBase * 1000, unit: 'kg' }
   if (base === 'ml') return { value: costPerBase * 1000, unit: 'L' }
   return { value: costPerBase, unit: 'un' }
+}
+
+export const paymentLabels: Record<ChannelPayment, string> = {
+  pix: 'Pix',
+  debito: 'Débito',
+  credito: 'Crédito',
+  dinheiro: 'Dinheiro',
+  app: 'Pago no app',
 }

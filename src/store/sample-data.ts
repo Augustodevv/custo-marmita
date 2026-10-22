@@ -1,4 +1,4 @@
-import type { Ingredient, Packaging, Recipe } from '@/lib/types'
+import type { FixedCost, Ingredient, LaborEntry, Packaging, Recipe } from '@/lib/types'
 
 // Dados de exemplo com preços típicos de atacarejo (out/2026), só para demonstração.
 const D = '2026-10-15'
@@ -80,7 +80,7 @@ export const sampleRecipes: Recipe[] = [
       { ingredientId: 's-sal-temp', qty: 5 },
     ],
     packaging: STD_PACK,
-    currentPrice: 22,
+    currentPrice: 25,
     desiredMargin: 20,
   }),
   rec({
@@ -119,7 +119,7 @@ export const sampleRecipes: Recipe[] = [
       { ingredientId: 's-sal-temp', qty: 5 },
     ],
     packaging: STD_PACK,
-    currentPrice: 21,
+    currentPrice: 24,
     desiredMargin: 20,
   }),
   rec({
@@ -137,7 +137,7 @@ export const sampleRecipes: Recipe[] = [
       { ingredientId: 's-sal-temp', qty: 5 },
     ],
     packaging: STD_PACK,
-    currentPrice: 23,
+    currentPrice: 22,
     desiredMargin: 20,
   }),
   rec({
@@ -181,4 +181,20 @@ export const sampleRecipes: Recipe[] = [
     currentPrice: 15,
     desiredMargin: 20,
   }),
+]
+
+export const sampleFixedCosts: FixedCost[] = [
+  { id: 's-fc-aluguel', name: 'Aluguel', amount: 800, sample: true },
+  { id: 's-fc-luz', name: 'Luz', amount: 250, sample: true },
+  { id: 's-fc-agua', name: 'Água', amount: 90, sample: true },
+  { id: 's-fc-internet', name: 'Internet e celular', amount: 100, sample: true },
+  { id: 's-fc-das', name: 'MEI / DAS', amount: 81, sample: true },
+  { id: 's-fc-mkt', name: 'Marketing', amount: 150, sample: true },
+  { id: 's-fc-manut', name: 'Manutenção', amount: 80, sample: true },
+  { id: 's-fc-outros', name: 'Outros', amount: 60, sample: true },
+]
+
+export const sampleLabor: LaborEntry[] = [
+  { id: 's-lb-pro', name: 'Pró-labore (seu salário)', mode: 'mensal', monthly: 2500, hourlyRate: 0, hours: 0, sample: true },
+  { id: 's-lb-ajud', name: 'Ajudante de cozinha', mode: 'hora', monthly: 0, hourlyRate: 12, hours: 80, sample: true },
 ]

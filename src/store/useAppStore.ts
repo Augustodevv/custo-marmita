@@ -4,8 +4,21 @@ import { applyPriceUpdate } from '@/lib/calc/units'
 import { duplicateRecipe as duplicateRecipeCalc } from '@/lib/calc/recipe'
 import { todayISO } from '@/lib/format'
 import { newId } from '@/lib/id'
-import type { Ingredient, Packaging, Recipe } from '@/lib/types'
-import { sampleIngredients, samplePackaging, sampleRecipes } from './sample-data'
+import type {
+  CostSettings,
+  FeeSettings,
+  Ingredient,
+  Packaging,
+  PricingSettings,
+  Recipe,
+} from '@/lib/types'
+import {
+  sampleFixedCosts,
+  sampleIngredients,
+  sampleLabor,
+  samplePackaging,
+  sampleRecipes,
+} from './sample-data'
 
 export type ThemePref = 'light' | 'dark' | 'system'
 
@@ -17,6 +30,9 @@ export interface AppData {
   ingredients: Ingredient[]
   packaging: Packaging[]
   recipes: Recipe[]
+  costs: CostSettings
+  fees: FeeSettings
+  pricing: PricingSettings
   settings: Settings
 }
 
@@ -35,6 +51,10 @@ interface Actions {
   deleteRecipe: (id: string) => void
   duplicateRecipe: (id: string) => string | undefined
 
+  setCosts: (patch: Partial<CostSettings>) => void
+  setFees: (patch: Partial<FeeSettings>) => void
+  setPricing: (patch: Partial<PricingSettings>) => void
+
   setTheme: (t: ThemePref) => void
   clearSampleData: () => void
   loadSampleData: () => void
@@ -45,10 +65,37 @@ export type AppState = AppData & Actions
 
 export const defaultSettings: Settings = { theme: 'system' }
 
+export const defaultCosts: CostSettings = {
+  fixedCosts: sampleFixedCosts,
+  labor: sampleLabor,
+  gas: { mode: 'botijao', monthly: 0, cylinderPrice: 115, mealsPerCylinder: 120 },
+  monthlyProduction: 600,
+}
+
+export const defaultFees: FeeSettings = {
+  salesTaxPercent: 0,
+  cardFees: { pix: 0, debito: 1.99, credito: 4.99, dinheiro: 0 },
+  deliveryCostPerMeal: 2,
+  channels: [
+    { id: 'direto', name: 'Direto / WhatsApp', feePercent: 0, payment: 'pix', ownDelivery: true },
+    { id: 'ifood', name: 'iFood', feePercent: 26.2, payment: 'app', ownDelivery: false },
+    { id: 'retirada', name: 'Retirada no local', feePercent: 0, payment: 'pix', ownDelivery: false },
+  ],
+}
+
+export const defaultPricing: PricingSettings = {
+  defaultMargin: 20,
+  minMarginAlert: 15,
+  primaryChannelId: 'direto',
+}
+
 export const initialData: AppData = {
   ingredients: sampleIngredients,
   packaging: samplePackaging,
   recipes: sampleRecipes,
+  costs: defaultCosts,
+  fees: defaultFees,
+  pricing: defaultPricing,
   settings: defaultSettings,
 }
 
@@ -58,7 +105,7 @@ const without = <T extends { sample?: boolean }>(list: T[]) => list.filter((x) =
  * Remove os dados de exemplo. Ingredientes/embalagens de exemplo usados em fichas
  * do próprio usuário são mantidos (e passam a ser dele), para não quebrar essas fichas.
  */
-export function removeSampleData(s: Pick<AppData, 'ingredients' | 'packaging' | 'recipes'>) {
+export function removeSampleData(s: Pick<AppData, 'ingredients' | 'packaging' | 'recipes' | 'costs'>) {
   const recipes = without(s.recipes)
   const usedIng = new Set(recipes.flatMap((r) => r.items.map((i) => i.ingredientId)))
   const usedPack = new Set(recipes.flatMap((r) => r.packaging.map((p) => p.packagingId)))
@@ -68,6 +115,7 @@ export function removeSampleData(s: Pick<AppData, 'ingredients' | 'packaging' | 
     ingredients: keep(s.ingredients, usedIng),
     packaging: keep(s.packaging, usedPack),
     recipes,
+    costs: { ...s.costs, fixedCosts: without(s.costs.fixedCosts), labor: without(s.costs.labor) },
   }
 }
 
@@ -136,6 +184,10 @@ export const useAppStore = create<AppState>()(
         return copy.id
       },
 
+      setCosts: (patch) => set((s) => ({ costs: { ...s.costs, ...patch } })),
+      setFees: (patch) => set((s) => ({ fees: { ...s.fees, ...patch } })),
+      setPricing: (patch) => set((s) => ({ pricing: { ...s.pricing, ...patch } })),
+
       setTheme: (theme) => set((s) => ({ settings: { ...s.settings, theme } })),
 
       clearSampleData: () => set((s) => removeSampleData(s)),
@@ -144,17 +196,27 @@ export const useAppStore = create<AppState>()(
           ingredients: [...without(s.ingredients), ...sampleIngredients],
           packaging: [...without(s.packaging), ...samplePackaging],
           recipes: [...without(s.recipes), ...sampleRecipes],
+          costs: {
+            ...s.costs,
+            fixedCosts: [...without(s.costs.fixedCosts), ...sampleFixedCosts],
+            labor: [...without(s.costs.labor), ...sampleLabor],
+          },
         })),
       replaceAll: (data) => set(() => ({ ...data })),
     }),
     {
       name: 'custo-marmita',
-      version: 1,
+      version: 2,
+      // v1 → v2: novos blocos (custos, taxas, preços) recebem os padrões no `merge`
+      migrate: (persisted) => persisted as AppData,
       storage: createJSONStorage(() => localStorage),
       partialize: (s): AppData => ({
         ingredients: s.ingredients,
         packaging: s.packaging,
         recipes: s.recipes,
+        costs: s.costs,
+        fees: s.fees,
+        pricing: s.pricing,
         settings: s.settings,
       }),
       // Garante que campos novos (de versões futuras) recebam valores padrão
@@ -163,6 +225,9 @@ export const useAppStore = create<AppState>()(
         return {
           ...current,
           ...p,
+          costs: { ...current.costs, ...(p.costs ?? {}) },
+          fees: { ...current.fees, ...(p.fees ?? {}) },
+          pricing: { ...current.pricing, ...(p.pricing ?? {}) },
           settings: { ...current.settings, ...(p.settings ?? {}) },
         }
       },
@@ -171,4 +236,8 @@ export const useAppStore = create<AppState>()(
 )
 
 export const hasSampleData = (s: AppData) =>
-  s.ingredients.some((i) => i.sample) || s.packaging.some((p) => p.sample) || s.recipes.some((r) => r.sample)
+  s.ingredients.some((i) => i.sample) ||
+  s.packaging.some((p) => p.sample) ||
+  s.recipes.some((r) => r.sample) ||
+  s.costs.fixedCosts.some((f) => f.sample) ||
+  s.costs.labor.some((l) => l.sample)

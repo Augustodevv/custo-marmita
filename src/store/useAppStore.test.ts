@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { sampleIngredients, samplePackaging, sampleRecipes } from './sample-data'
-import { removeSampleData } from './useAppStore'
+import { defaultCosts, removeSampleData } from './useAppStore'
 
 describe('limpar dados de exemplo', () => {
   it('remove tudo que é exemplo quando não há fichas do usuário', () => {
-    const r = removeSampleData({ ingredients: sampleIngredients, packaging: samplePackaging, recipes: sampleRecipes })
+    const r = removeSampleData({ ingredients: sampleIngredients, packaging: samplePackaging, recipes: sampleRecipes, costs: defaultCosts })
     expect(r.ingredients).toHaveLength(0)
     expect(r.packaging).toHaveLength(0)
     expect(r.recipes).toHaveLength(0)
+    expect(r.costs.fixedCosts).toHaveLength(0)
+    expect(r.costs.labor).toHaveLength(0)
+    expect(r.costs.monthlyProduction).toBe(defaultCosts.monthlyProduction)
   })
 
   it('mantém itens de exemplo usados em fichas do usuário', () => {
@@ -22,6 +25,7 @@ describe('limpar dados de exemplo', () => {
       ingredients: sampleIngredients,
       packaging: samplePackaging,
       recipes: [...sampleRecipes, mine],
+      costs: defaultCosts,
     })
     expect(r.recipes.map((x) => x.id)).toEqual(['minha'])
     expect(r.ingredients.map((x) => x.id)).toEqual(['s-frango'])
