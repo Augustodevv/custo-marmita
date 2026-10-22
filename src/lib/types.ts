@@ -34,6 +34,10 @@ export interface Ingredient {
   updatedAt: string
   /** Preços anteriores, do mais antigo para o mais recente (não inclui o atual) */
   priceHistory: PriceEntry[]
+  /** Quanto você tem em estoque, na unidade-base (g, ml ou un). Ausente = sem controle */
+  stockQty?: number
+  /** Estoque mínimo desejado, na unidade-base. Abaixo disso o app avisa para comprar */
+  minStock?: number
   sample?: boolean
 }
 
@@ -48,6 +52,10 @@ export interface Packaging {
   packPrice: number
   /** Quantidade de itens no pacote */
   packQty: number
+  /** Unidades em estoque. Ausente = sem controle */
+  stockQty?: number
+  /** Estoque mínimo em unidades */
+  minStock?: number
   sample?: boolean
 }
 
@@ -167,3 +175,17 @@ export interface PricingSettings {
   /** Canal em que o "preço praticado" das fichas é cobrado */
   primaryChannelId: string
 }
+
+// ---------- Estoque e produção ----------
+
+export type StockKind = 'ingrediente' | 'embalagem'
+
+export interface StockChange {
+  kind: StockKind
+  id: string
+  /** Variação na unidade-base (positivo = entrada, negativo = saída) */
+  delta: number
+}
+
+/** Plano de produção: id da ficha → quantidade a produzir */
+export type ProductionPlan = Record<string, number>

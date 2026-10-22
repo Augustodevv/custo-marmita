@@ -1,10 +1,20 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { applyStockChanges } from '@/lib/calc/stock'
 import { applyPriceUpdate } from '@/lib/calc/units'
 import { duplicateRecipe as duplicateRecipeCalc } from '@/lib/calc/recipe'
 import { todayISO } from '@/lib/format'
 import { newId } from '@/lib/id'
-import type { CostSettings, FeeSettings, Ingredient, Packaging, PricingSettings, Recipe } from '@/lib/types'
+import type {
+  CostSettings,
+  FeeSettings,
+  Ingredient,
+  Packaging,
+  PricingSettings,
+  ProductionPlan,
+  Recipe,
+  StockChange,
+} from '@/lib/types'
 import {
   sampleFixedCosts,
   sampleIngredients,
@@ -26,6 +36,8 @@ export interface AppData {
   costs: CostSettings
   fees: FeeSettings
   pricing: PricingSettings
+  /** Plano de produção da lista de compras (id da ficha → quantidade) */
+  plan: ProductionPlan
   settings: Settings
 }
 
@@ -47,6 +59,10 @@ interface Actions {
   setCosts: (patch: Partial<CostSettings>) => void
   setFees: (patch: Partial<FeeSettings>) => void
   setPricing: (patch: Partial<PricingSettings>) => void
+
+  setPlanQty: (recipeId: string, qty: number) => void
+  setPlan: (plan: ProductionPlan) => void
+  applyStock: (changes: StockChange[]) => void
 
   setTheme: (t: ThemePref) => void
   clearSampleData: () => void
@@ -89,6 +105,7 @@ export const initialData: AppData = {
   costs: defaultCosts,
   fees: defaultFees,
   pricing: defaultPricing,
+  plan: { 's-r-frango': 15, 's-r-carne-pure': 10, 's-r-strogonoff': 10, 's-r-kids': 5 },
   settings: defaultSettings,
 }
 
@@ -98,7 +115,9 @@ const without = <T extends { sample?: boolean }>(list: T[]) => list.filter((x) =
  * Remove os dados de exemplo. Ingredientes/embalagens de exemplo usados em fichas
  * do próprio usuário são mantidos (e passam a ser dele), para não quebrar essas fichas.
  */
-export function removeSampleData(s: Pick<AppData, 'ingredients' | 'packaging' | 'recipes' | 'costs'>) {
+export function removeSampleData(
+  s: Pick<AppData, 'ingredients' | 'packaging' | 'recipes' | 'costs' | 'plan'>,
+) {
   const recipes = without(s.recipes)
   const usedIng = new Set(recipes.flatMap((r) => r.items.map((i) => i.ingredientId)))
   const usedPack = new Set(recipes.flatMap((r) => r.packaging.map((p) => p.packagingId)))
@@ -109,6 +128,7 @@ export function removeSampleData(s: Pick<AppData, 'ingredients' | 'packaging' | 
     packaging: keep(s.packaging, usedPack),
     recipes,
     costs: { ...s.costs, fixedCosts: without(s.costs.fixedCosts), labor: without(s.costs.labor) },
+    plan: Object.fromEntries(Object.entries(s.plan).filter(([id]) => recipes.some((r) => r.id === id))),
   }
 }
 
@@ -168,7 +188,12 @@ export const useAppStore = create<AppState>()(
       },
       updateRecipe: (id, patch) =>
         set((s) => ({ recipes: s.recipes.map((r) => (r.id === id ? { ...r, ...patch } : r)) })),
-      deleteRecipe: (id) => set((s) => ({ recipes: s.recipes.filter((r) => r.id !== id) })),
+      deleteRecipe: (id) =>
+        set((s) => {
+          const plan = { ...s.plan }
+          delete plan[id]
+          return { recipes: s.recipes.filter((r) => r.id !== id), plan }
+        }),
       duplicateRecipe: (id) => {
         const original = get().recipes.find((r) => r.id === id)
         if (!original) return undefined
@@ -180,6 +205,20 @@ export const useAppStore = create<AppState>()(
       setCosts: (patch) => set((s) => ({ costs: { ...s.costs, ...patch } })),
       setFees: (patch) => set((s) => ({ fees: { ...s.fees, ...patch } })),
       setPricing: (patch) => set((s) => ({ pricing: { ...s.pricing, ...patch } })),
+
+      setPlanQty: (recipeId, qty) =>
+        set((s) => {
+          const plan = { ...s.plan }
+          if (qty > 0) plan[recipeId] = qty
+          else delete plan[recipeId]
+          return { plan }
+        }),
+      setPlan: (plan) => set(() => ({ plan })),
+      applyStock: (changes) =>
+        set((s) => ({
+          ingredients: applyStockChanges(s.ingredients, changes, 'ingrediente'),
+          packaging: applyStockChanges(s.packaging, changes, 'embalagem'),
+        })),
 
       setTheme: (theme) => set((s) => ({ settings: { ...s.settings, theme } })),
 
@@ -199,8 +238,8 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'custo-marmita',
-      version: 2,
-      // v1 → v2: novos blocos (custos, taxas, preços) recebem os padrões no `merge`
+      version: 3,
+      // Versões antigas: blocos novos (custos, taxas, plano…) recebem os padrões no `merge`
       migrate: (persisted) => persisted as AppData,
       storage: createJSONStorage(() => localStorage),
       partialize: (s): AppData => ({
@@ -210,6 +249,7 @@ export const useAppStore = create<AppState>()(
         costs: s.costs,
         fees: s.fees,
         pricing: s.pricing,
+        plan: s.plan,
         settings: s.settings,
       }),
       // Garante que campos novos (de versões futuras) recebam valores padrão

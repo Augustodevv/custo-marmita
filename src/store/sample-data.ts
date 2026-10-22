@@ -28,6 +28,8 @@ export const sampleIngredients: Ingredient[] = [
     unit: 'kg',
     lossPercent: 25,
     prev: 19.9,
+    stockQty: 1500,
+    minStock: 3000,
   }),
   ing({
     id: 's-patinho',
@@ -57,6 +59,8 @@ export const sampleIngredients: Ingredient[] = [
     unit: 'un',
     lossPercent: 0,
     unitWeight: 50,
+    stockQty: 0,
+    minStock: 30,
   }),
   ing({
     id: 's-grao',
@@ -77,6 +81,8 @@ export const sampleIngredients: Ingredient[] = [
     unit: 'kg',
     lossPercent: 0,
     cookingYield: 2.5,
+    stockQty: 2000,
+    minStock: 1000,
   }),
   ing({
     id: 's-arroz',
@@ -88,6 +94,8 @@ export const sampleIngredients: Ingredient[] = [
     lossPercent: 0,
     cookingYield: 2.8,
     prev: 25.9,
+    stockQty: 4000,
+    minStock: 2000,
   }),
   ing({
     id: 's-batata',
@@ -215,6 +223,8 @@ export const sampleIngredients: Ingredient[] = [
     packageQty: 500,
     unit: 'ml',
     lossPercent: 0,
+    stockQty: 300,
+    minStock: 250,
   }),
   ing({
     id: 's-oleo',
@@ -248,7 +258,15 @@ export const sampleIngredients: Ingredient[] = [
 const pack = (p: Omit<Packaging, 'sample'>): Packaging => ({ ...p, sample: true })
 
 export const samplePackaging: Packaging[] = [
-  pack({ id: 's-pote-750', name: 'Pote 750 ml com divisória', type: 'pote', packPrice: 64.9, packQty: 100 }),
+  pack({
+    id: 's-pote-750',
+    name: 'Pote 750 ml com divisória',
+    type: 'pote',
+    packPrice: 64.9,
+    packQty: 100,
+    stockQty: 40,
+    minStock: 100,
+  }),
   pack({ id: 's-pote-500', name: 'Pote 500 ml', type: 'pote', packPrice: 49.9, packQty: 100 }),
   pack({ id: 's-tampa', name: 'Tampa (pote 500 ml)', type: 'tampa', packPrice: 19.9, packQty: 100 }),
   pack({ id: 's-sacola', name: 'Sacola kraft', type: 'sacola', packPrice: 39.9, packQty: 50 }),
@@ -267,8 +285,18 @@ export const samplePackaging: Packaging[] = [
     type: 'etiqueta',
     packPrice: 29.9,
     packQty: 500,
+    stockQty: 350,
+    minStock: 100,
   }),
-  pack({ id: 's-lacre', name: 'Adesivo de lacre', type: 'lacre', packPrice: 18.9, packQty: 500 }),
+  pack({
+    id: 's-lacre',
+    name: 'Adesivo de lacre',
+    type: 'lacre',
+    packPrice: 18.9,
+    packQty: 500,
+    stockQty: 80,
+    minStock: 100,
+  }),
 ]
 
 const STD_PACK = [

@@ -28,6 +28,6 @@ export const navItems: NavItem[] = [
   { to: '/custos', label: 'Custos Fixos', short: 'Custos', icon: Receipt },
   { to: '/precificacao', label: 'Precificação', short: 'Preços', icon: Calculator, mobile: true },
   { to: '/kits', label: 'Kits e Combos', short: 'Kits', icon: PackageOpen },
-  { to: '/compras', label: 'Lista de Compras', short: 'Compras', icon: ShoppingCart },
+  { to: '/compras', label: 'Compras e Estoque', short: 'Compras', icon: ShoppingCart },
   { to: '/configuracoes', label: 'Configurações', short: 'Ajustes', icon: Settings },
 ]

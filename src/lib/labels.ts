@@ -81,3 +81,10 @@ export const paymentLabels: Record<ChannelPayment, string> = {
   dinheiro: 'Dinheiro',
   app: 'Pago no app',
 }
+
+/** Unidade amigável para digitar/ler estoques: g → kg, ml → L. */
+export function bigUnit(base: BaseUnit): { unit: string; factor: number } {
+  if (base === 'g') return { unit: 'kg', factor: 1000 }
+  if (base === 'ml') return { unit: 'L', factor: 1000 }
+  return { unit: 'un', factor: 1 }
+}

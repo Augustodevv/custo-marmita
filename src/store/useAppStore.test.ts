@@ -9,6 +9,7 @@ describe('limpar dados de exemplo', () => {
       packaging: samplePackaging,
       recipes: sampleRecipes,
       costs: defaultCosts,
+      plan: { minha: 5, 's-r-frango': 10 },
     })
     expect(r.ingredients).toHaveLength(0)
     expect(r.packaging).toHaveLength(0)
@@ -31,10 +32,12 @@ describe('limpar dados de exemplo', () => {
       packaging: samplePackaging,
       recipes: [...sampleRecipes, mine],
       costs: defaultCosts,
+      plan: { minha: 5, 's-r-frango': 10 },
     })
     expect(r.recipes.map((x) => x.id)).toEqual(['minha'])
     expect(r.ingredients.map((x) => x.id)).toEqual(['s-frango'])
     expect(r.ingredients[0].sample).toBe(false)
     expect(r.packaging.map((x) => x.id)).toEqual(['s-pote-750'])
+    expect(r.plan).toEqual({ minha: 5 })
   })
 })
